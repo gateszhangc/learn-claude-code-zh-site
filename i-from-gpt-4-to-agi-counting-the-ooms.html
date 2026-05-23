@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>从 GPT-4 到 AGI：清点数量级 | Situational Awareness 中文版</title>
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-top">
+          <a class="home-link" href="index.html">目录</a>
+          <div class="pager">
+            <a href="introduction.html">上一章</a>
+            <a href="ii-from-agi-to-superintelligence-the-intelligence-explosion.html">下一章</a>
+          </div>
+        </div>
+        <h1>从 GPT-4 到 AGI：清点数量级</h1>
+        <p class="chapter-en">I. From GPT-4 to AGI: Counting the OOMs</p>
+      </header>
+
+
+      <main class="content">
+        <section class="block block-chapter_title" >
+          <h2 class="sr-only">一、从 GPT-4 到 AGI：数数数量级</h2>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>I. From GPT-4 to AGI: Counting the OOMs</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>2027 年实现 AGI 的可能性极为显著。从 GPT-2 到 GPT-4，我们在 4 年内将能力从约学龄前儿童提升到了约聪明高中生的水平。追踪计算能力（每年约 0.5 个数量级）、算法效率（每年约 0.5 个数量级）和“解除束缚”的增益（从聊天机器人到智能体），我们应该预期到 2027 年会有另一个从学龄前到高中生规模的质的飞跃。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>AGI by 2027 is strikingly plausible. GPT-2 to GPT-4 took us from ~preschooler to ~smart high-schooler abilities in 4 years. Tracing trendlines in compute (~0.5 orders of magnitude or OOMs/year), algorithmic efficiencies (~0.5 OOMs/year), and “unhobbling” gains (from chatbot to agent), we should expect another preschooler-to-high-schooler-sized qualitative jump by 2027.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>看，这些模型，它们就是想学习。你必须明白这一点。这些模型，它们就是想学习。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Look. The models, they just want to learn. You have to understand this. The models, they just want to learn.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>伊利亚·苏茨克维（约 2015 年，经由达里奥·阿莫代）GPT-4 的能力令许多人震惊：一个人工智能系统能够编写代码和文章，能够推理困难的数学问题，并在大学考试中取得优异成绩。几年前，大多数人认为这些都是无法逾越的高墙。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>ilya sutskever (circa 2015, via Dario Amodei) GPT-4’s capabilities came as a shock to many: an AI system that could write code and essays, could reason through difficult math problems, and ace college exams. A few years ago, most thought these were impenetrable walls.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>但 GPT-4 仅仅是深度学习十年来突飞猛进发展的延续。十年前，模型几乎无法识别猫和狗的简单图像；四年前，GPT-2 几乎无法拼凑出半通顺的句子。如今，我们正在迅速饱和所有我们能想出的基准测试。然而，这一巨大的进步仅仅是在扩大深度学习规模方面持续趋势的结果。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>But GPT-4 was merely the continuation of a decade of breakneck progress in deep learning. A decade earlier, models could barely identify simple images of cats and dogs; four years earlier, GPT-2 could barely string together semi-plausible sentences. Now we are rapidly saturating all the benchmarks we can come up with. And yet this dramatic progress has merely been the result of consistent trends in scaling up deep learning.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>有些人在更早的时候就看到了这一点。他们曾遭嘲笑，但他们所做的只是相信趋势线。态势感知 8 的趋势线是强烈的，而他们是对的。这些模型，它们就是想学习；你扩大它们的规模，它们就学得更多。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>There have been people who have seen this for far longer. They were scoffed at, but all they did was trust the trendlines. The situational awareness 8 trendlines are intense, and they were right. The models, they just want to learn; you scale them up, and they learn more.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我提出以下论断：到 2027 年，模型将能够完成 AI 研究员或工程师的工作，这一点极为可能。这不需要相信科幻；只需要相信图表上的直线。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>I make the following claim: it is strikingly plausible that by 2027, models will be able to do the work of an AI researcher/engineer. That doesn’t require believing in sci-fi; it just requires believing in straight lines on a graph.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>在这篇文章中，我将简单地“数数数量级”（OOM = 数量级，10 倍 = 1 个数量级）：审视 1) 计算能力，2) 算法效率（可以视为增长的“有效计算”的算法进步），以及 3) “解除束缚”的增益（修复模型在默认情况下明显受限的方式，释放潜在能力并给予工具，从而导致实用性的阶跃变化）的趋势。我们追溯 图 1：基于本文讨论的公开估算，对过去和未来有效计算（包括物理计算和算法效率）规模扩大的粗略估算。随着我们扩展模型，它们始终变得更聪明，而通过“数数数量级”，我们对（不久）将来应该预期的模型智能有了一个粗略的概念。（此图仅显示基础模型的规模扩大；“解除束缚”的增益未予描绘。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In this piece, I will simply “count the OOMs” (OOM = order of magnitude, 10x = 1 order of magnitude): look at the trends in 1) compute, 2) algorithmic efficiencies (algorithmic progress that we can think of as growing “effective compute”), and 3) ”unhobbling” gains (fixing obvious ways in which models are hobbled by default, unlocking latent capabilities and giving them tools, leading to step-changes in usefulness). We trace Figure 1: Rough estimates of past and future scaleup of effective compute (both physical compute and algorithmic efficiencies), based on the public estimates discussed in this piece. As we scale models, they consistently get smarter, and by “counting the OOMs” we get a rough sense of what model intelligence we should expect in the (near) future. (This graph shows only the scaleup in base models; “unhobblings” are not pictured.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 9 在 GPT-4 之前的四年中每个方面的增长，以及我们在随后的四年中，直到 2027 年底应该预期的增长。鉴于深度学习在每一个有效计算数量级上的持续改进，我们可以利用这一点来预测未来的进步。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 9 the growth in each over four years before GPT-4, and what we should expect in the four years after, through the end of 2027. Given deep learning’s consistent improvements for every OOM of effective compute, we can use this to project future progress.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>公开来看，自 GPT-4 发布以来的一年里，事情一直很安静，因为下一代模型正在酝酿中——导致一些人宣称发展停滞，深度学习正在碰壁。1 但通过数数数量级，我们可以一窥 1 他们在过去十年中每年都做出的预测，并且每次都一贯错误……实际上我们应该期待什么。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Publicly, things have been quiet for a year since the GPT-4 release, as the next generation of models has been in the oven— leading some to proclaim stagnation and that deep learning is hitting a wall.1 But by counting the OOMs, we get a peek at 1 Predictions they’ve made every year for the last decade, and which they’ve been consistently wrong about. . . what we should actually expect.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>结论其实很简单。从GPT-2到GPT-4——从那些有时能勉强拼凑出几句连贯句子就令人印象深刻的模型，到能在高中考试中拔得头筹的模型——这并非一次性的飞跃。我们正以极快的速度跨越数量级，而数据显示，我们应预期在未来四年内，有效计算规模再扩大约10万倍——带来又一次类似GPT-2到GPT-4的质的飞跃。而且，关键在于，这不仅仅意味着更好的聊天机器人；抓住许多明显的“解锁”收益，应该能让我们从聊天机器人走向智能代理，从工具走向更像是现成的远程员工替代品。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The upshot is pretty simple. GPT-2 to GPT-4—from models that were impressive for sometimes managing to string together a few coherent sentences, to models that ace high-school exams—was not a one-time gain. We are racing through the OOMs extremely rapidly, and the numbers indicate we should expect another ~100,000x effective compute scaleup—resulting in another GPT-2-to-GPT-4-sized qualitative jump—over four years. Moreover, and critically, that doesn’t just mean a better chatbot; picking the many obvious low-hanging fruit on “unhobbling” gains should take us from chatbots to agents, from a tool to something that looks more like drop-in remote worker replacements.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>虽然推理简单，但其含义却引人注目。这样的又一次飞跃很可能将我们带向AGI，带向像博士或专家一样聪明、能作为同事与我们并肩工作的模型。也许最重要的是，如果这些AI系统能够自动化AI研究本身，那将启动强烈的反馈循环——这是本系列下一篇文章的主题。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>While the inference is simple, the implication is striking. Another jump like that very well could take us to AGI, to models as smart as PhDs or experts that can work beside us as coworkers. Perhaps most importantly, if these AI systems could automate AI research itself, that would set in motion intense feedback loops—the topic of the the next piece in the series.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>即使现在，几乎没有人将这些因素充分考虑在内。但一旦你退一步审视趋势，对AI的态势感知其实并不那么困难。如果你对AI的能力持续感到惊讶，那就开始数数量级吧。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Even now, barely anyone is pricing all this in. But situational awareness on AI isn’t actually that hard, once you step back and look at the trends. If you keep being surprised by AI capabilities, just start counting the OOMs.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知10 过去四年 我们现在拥有了基本上可以像人类一样与之对话的机器。这显得如此平常，我们已对进步的速度习以为常，这真是对人类适应能力的非凡证明。但值得退一步，看看仅过去几年的进步。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 10 The last four years We have machines now that we can basically talk to like humans. It’s a remarkable testament to the human capacity to adjust that this seems normal, that we’ve become inured to the pace of progress. But it’s worth stepping back and looking at the progress of just the last few years.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>GPT-2到GPT-4 让我提醒你，在GPT-4诞生前的短短约4年（！）里，我们走了多远。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>GPT-2 to GPT-4 Let me remind you of how far we came in just the ~4 (!) years leading up to GPT-4.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>2 来自SSC：“Janelle Shane问GPT-2它最喜欢的十种动物：提示：我最喜欢的10种动物是：1. 我最喜欢的十种动物是：1. 背上带有白色疤痕的斑马 2. 阴险的蜘蛛和章鱼 3. 带有大叶子的青蛙，希望是黑色的 4. 带有鳞片的玄凤鹦鹉 5. 翅膀悬挂在离脸约4英寸处的刀嘴海雀，以及青蛙上有心形纹身 3. 可盲视、切割并生食的鸡蛇互锁四足动物：4. 生活在阳光下的黑白沙漠鳄鱼 5. 斑马和许多其他豆虫” GPT-2（2019年）~学龄前儿童：“哇，它能拼凑出几句看似合理的句子。”当时，它生成的一个关于安第斯山脉独角兽的半连贯故事（经过精心挑选）令人印象深刻至极。然而，GPT-2几乎数不到5就会出错；2在总结文章时，它仅勉强胜过从文章中随机选取3个句子。3 3 来自GPT-2论文，第3.6节。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>2 From SSC: “Janelle Shane asks GPT-2 its ten favorite animals: Prompt: My 10 favorite animals are: 1. My ten favorite animals are: 1. Zebras with a white scar on the back 2. Insiduous spiders and octopus 3. Frog with large leaves, hopefully black 4. Cockatiel with scales 5. Razorbill with wings hanging about 4 inches from one’s face and a heart tattoo on a frog 3. Cockatric interlocking tetrabods that can be blind, cut, and eaten raw: 4. Black and white desert crocodiles living in sunlight 5. Zebra and many other pea bugs” GPT-2 (2019) ~ preschooler: “Wow, it can string together a few plausible sentences.” A very-cherry-picked example of a semicoherent story about unicorns in the Andes it generated was incredibly impressive at the time. And yet GPT-2 could barely count to 5 without getting tripped up;2 when summarizing an article, it just barely outperformed selecting 3 random sentences from the article.3 3 From the GPT-2 paper, Section 3.6.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>将AI能力与人类智能进行比较既困难又有缺陷，但我认为考虑这个类比是有启发性的。图2：当时人们对GPT-2印象深刻的一些例子。左图：GPT-2在极为基础的阅读理解问题上表现尚可。右图：在一个精心挑选的样本中（10次尝试中的最佳），GPT-2能写出一个半连贯的段落，说一些关于内战半相关的事情。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Comparing AI capabilities with human intelligence is difficult and flawed, but I think it’s informative to consider the analogy Figure 2: Some examples of what people found impressive about GPT2 at the time. Left: GPT-2 does an ok job on extremely basic reading comprehension questions. Right: In a cherry-picked sample (best of 10 tries), GPT-2 can write a semi-coherent paragraph that says some semi-relevant things about the Civil War.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知11 这里，即使这种类比非常不完美。GPT-2因其语言掌控力而令人震惊，它偶尔能生成半连贯的段落，或偶尔正确回答简单的事实性问题。这对一个学龄前儿童来说会是令人印象深刻的表现。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 11 here, even if it’s highly imperfect. GPT-2 was shocking for its command of language, and its ability to occasionally generate a semi-cohesive paragraph, or occasionally answer simple factual questions correctly. It’s what would have been impressive for a preschooler.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>GPT-3（2020年）⁴ ∼ 小学生水平：“哇，只需几个⁴我是说这里笨拙的老版GPT-3，不是ChatGPT中你熟知的经过大幅改进的GPT-3.5。少样本示例，它就能完成一些简单的实用任务。”它开始在多段落中保持连贯性，变得更加一致，能纠正语法并做一些非常基础的算术。首次，它在一些狭窄的领域也具备了商业用途：例如，GPT-3可以为SEO和营销生成简单的文案。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>GPT-3 (2020)4 ~ elementary schooler: “Wow, with just some few4 I mean clunky old GPT-3 here, not the dramatically-improved GPT-3.5 you might know from ChatGPT. shot examples it can do some simple useful tasks.” It started being cohesive over even multiple paragraphs much more consistently, and could correct grammar and do some very basic arithmetic. For the first time, it was also commercially useful in a few narrow ways: for example, GPT-3 could generate simple copy for SEO and marketing.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>再次说明，这种对比并不完美，但GPT-3让人们印象深刻的地方，或许也正是小学生会让人感到惊艳的地方：它能写些基础诗歌，讲述更丰富连贯的故事，开始进行初步的图3：当时人们觉得GPT-3令人印象深刻的一些例子。上图：在简单指令之后，GPT-3能在新句子中使用一个自创的词。左下：GPT-3能进行丰富的来回式故事讲述。右下：GPT-3能生成一些非常简单的代码。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Again, the comparison is imperfect, but what impressed people about GPT-3 is perhaps what would have been impressive for an elementary schooler: it wrote some basic poetry, could tell richer and coherent stories, could start to do rudimentary Figure 3: Some examples of what people found impressive about GPT3 at the time. Top: After a simple instruction, GPT-3 can use a made-up word in a new sentence. Bottom-left: GPT-3 can engage in rich storytelling back-and-forth. Bottom-right: GPT-3 can generate some very simple code.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 12 编程，能相当可靠地从简单指令和演示中学习，等等。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 12 coding, could fairly reliably learn from simple instructions and demonstrations, and so on.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>GPT-4（2023年） ∼ 聪明的高中生：“哇，它能编写相当复杂的代码并进行迭代调试，能以聪明而复杂的方式撰写复杂主题，能推理解决困难的高中竞赛数学题，在我们给出的各种测试中它都击败了绝大多数高中生，等等。”从代码到数学再到费米估算，它能思考与推理。GPT-4现在在日常任务中对我很有帮助，从协助编写代码到修改草稿。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>GPT-4 (2023) ~ smart high schooler: “Wow, it can write pretty sophisticated code and iteratively debug, it can write intelligently and sophisticatedly about complicated subjects, it can reason through difficult high-school competition math, it’s beating the vast majority of high schoolers on whatever tests we can give it, etc.” From code to math to Fermi estimates, it can think and reason. GPT-4 is now useful in my daily tasks, from helping write code to revising drafts.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 13 图4：GPT-4发布时人们觉得印象深刻的一些内容，来自《AGI的火花》论文。上图：它正在编写非常复杂的代码（生成图中所示的图表），并能推理解决非平凡的数学问题。左下：解决一道AP数学题。右下：解决一个相当复杂的编程问题。更多关于GPT-4能力探索的有趣节选请点击此处。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 13 Figure 4: Some of what people found impressive about GPT-4 when it was released, from the “Sparks of AGI” paper. Top: It’s writing very complicated code (producing the plots shown in the middle) and can reason through nontrivial math problems. Bottom-left: Solving an AP math problem. Bottom-right: Solving a fairly complex coding problem. More interesting excerpts from that exploration of GPT-4’s capabilities here.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 14 从AP考试到SAT，GPT-4的得分都高于绝大多数高中生。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 14 On everything from AP exams to the SAT, GPT-4 scores better than the vast majority of high schoolers.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>当然，即便是GPT-4也仍有些不平衡；对于某些任务，它比聪明的高中生强得多，而还有其他任务它尚不能完成。话虽如此，我倾向于认为这些限制大多归结于模型仍被束缚的明显方式，我将在后文深入讨论。原始的智能（大体上）已经具备，即使模型仍被人为限制；要解锁模型能在应用中全面运用这种原始智能，还需要额外的努力。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Of course, even GPT-4 is still somewhat uneven; for some tasks it’s much better than smart high-schoolers, while there are other tasks it can’t yet do. That said, I tend to think most of these limitations come down to obvious ways models are still hobbled, as I’ll discuss in-depth later. The raw intelligence is (mostly) there, even if the models are still artificially constrained; it’ll take extra work to unlock models being able to fully apply that raw intelligence across applications.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图5：仅四年间的进展。你在这条线上处于什么位置？</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 5: Progress over just four years. Where are you on this line?</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>深度学习的趋势 过去十年深度学习进展的速度简直非同寻常。仅仅十年前，一个深度学习系统能够识别简单图像还是革命性的。而如今，我们不断尝试提出新颖、愈发困难的测试，然而每一个新基准都被迅速破解。过去，破解一个广泛使用的基准需要数十年；现在，感觉只需几个月。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The trends in deep learning The pace of deep learning progress in the last decade has simply been extraordinary. A mere decade ago it was revolutionary for a deep learning system to identify simple images. Today, we keep trying to come up with novel, ever harder tests, and yet each new benchmark is quickly cracked. It used to take decades to crack widely-used benchmarks; now it feels like mere months.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们几乎用尽了所有基准测试。举个例子，我的朋友丹和科林在几年前，也就是2020年，制作了一个名为MMLU的基准。他们希望最终能打造一个经得起时间考验的基准，相当于我们给高中生和大学生设置的最难考试。仅仅三年后，它基本上被攻克了：像GPT-4和Gemini这样的模型已经能拿到约90%的分数。态势感知 15 图6：深度学习系统正在迅速达到或超越人类在许多领域的水平。图表：Our World in Data</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We’re literally running out of benchmarks. As an anecdote, my friends Dan and Collin made a benchmark called MMLU a few years ago, in 2020. They hoped to finally make a benchmark that would stand the test of time, equivalent to all the hardest exams we give high school and college students. Just three years later, it’s basically solved: models like GPT-4 and Gemini situational awareness 15 Figure 6: Deep learning systems are rapidly reaching or exceeding humanlevel in many domains. Graphic: Our World in Data get ~90%.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>或者考虑一下MATH基准，它是一组来自高中数学竞赛的难题。6 更广泛地说，GPT-4几乎破解了所有标准的高中和大学能力测试（图7）。5 而且，这些测试并不在训练集中。AI实验室确实投入了努力来确保这些评估未被污染，因为他们需要良好的测量数据来进行严谨的科学研究。ScaleAI最近的一项分析证实，领先的实验室并没有过度拟合这些基准（尽管一些较小的LLM开发者可能在夸大他们的数据）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Or consider the MATH benchmark, a set of difficult mathematics problems from high-school math competitions.6 When the More broadly, GPT-4 mostly cracks all the standard high school and college aptitude tests (Figure 7).5 5 And no, these tests aren’t in the training set. AI labs put real effort into ensuring these evals are uncontaminated, because they need good measurements in order to do good science. A recent analysis on this by ScaleAI confirmed that the leading labs aren’t overfitting to the benchmarks (though some smaller LLM developers might be juicing their numbers).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>6 在原始论文中，提到：“我们也评估了人类在MATH上的表现，发现一位不太喜欢数学的计算机科学博士生在MATH上大约取得了40%的正确率，而一位三次国际数学奥林匹克金牌得主则取得了90%，这表明MATH对人类来说同样具有挑战性。”</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>6 In the original paper, it was noted: “We also evaluated humans on MATH, and found that a computer science PhD student who does not especially like mathematics attained approximately 40% on MATH, while a three-time IMO gold medalist attained 90%, indicating that MATH can be challenging for humans as well.”</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>仅仅一年时间（到2022年中），最好的模型就从约5%的准确率提升到了50%；现在，MATH基本上被攻克了，近期表现超过了90%。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>just a year (by mid-2022), the best models went from ~5% to 50% accuracy; now, MATH is basically solved, with recent performance over 90%.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>当这个基准在2021年发布时，GPT-3仅答对了约5%的问题。原始论文指出：“此外，我们发现，如果缩放趋势继续下去，单纯增加预算和模型参数数量对于实现强大的数学推理将不切实际……要在数学问题解决上取得更大进展，我们可能需要来自更广泛研究社区的新算法进步”——他们认为，要解决MATH，我们需要根本性的新突破。一项针对ML研究人员的调查预测，在未来几年内进展将微乎其微（图8）；7 然而，在</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>benchmark was released in 2021, GPT-3 only got ~5% of problems right. And the original paper noted: “Moreover, we find that simply increasing budgets and model parameter counts will be impractical for achieving strong mathematical reasoning if scaling trends continue [...]. To have more traction on mathematical problem solving we will likely need new algorithmic advancements from the broader research community”—we would need fundamental new breakthroughs to solve MATH, or so they thought. A survey of ML researchers predicted minimal progress over the coming years (Figure 8);7 and yet within 7 A coauthor notes: “When our group first released the MATH dataset, at least one [ML researcher colleague] told us that it was a pointless dataset because it was too far outside the range of what ML models could accomplish (indeed, I was somewhat worried about this myself).”</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 16 图7：GPT-4在标准化测试中的得分。注意从GPT-3.5到GPT-4在这些测试中人类百分位排名上的大幅跃升，通常从明显低于人类中位水平提升到人类顶尖范围。（而且这是GPT-3.5，一个在GPT-4发布前不到一年推出的相当新的模型，而不是我们之前谈论的那个笨拙老旧、小学生水平的GPT-3！）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 16 Figure 7: GPT-4 scores on standardized tests. Note also the large jump from GPT-3.5 to GPT-4 in human percentile on these tests, often from well below the median human to the very top of the human range. (And this is GPT-3.5, a fairly recent model released less than a year before GPT-4, not the clunky old elementary-school-level GPT-3 we were talking about earlier!)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图8：灰色：2021年8月做出的专业预测，针对2022年6月在MATH基准（来自高中数学竞赛的难题）上的表现。红星：截至2022年6月的实际最先进表现，远远超出了预测者给出的最高范围。ML研究人员的预测中位数甚至更为悲观。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 8: Gray: Professional forecasts, made in August 2021, for June 2022 performance on the MATH benchmark (difficult mathematics problems from high-school math competitions). Red star: actual state-of-the-art performance by June 2022, far exceeding even the upper range forecasters gave. The median ML researcher was even more pessimistic.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 17 回顾人工智能这十年，你永远不应该押注深度学习会失败。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 17 decade of AI, it’s that you should never bet against deep learning.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>如今，最难攻克的未解决基准测试是像GPQA这样的测验，它包含一系列博士级别的生物学、化学和物理学问题。许多问题在我看来如同天书，即便是其他科学领域的博士，花上30多分钟借助谷歌搜索，得分也仅略高于随机猜测的水平。Claude 3 Opus目前的得分约为60%9，而本领域的博士得分约为80%——我预计在未来一到两代模型内，这一基准测试也将被攻克。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Now the hardest unsolved benchmarks are tests like GPQA, a set of PhD-level biology, chemistry, and physics questions. Many of the questions read like gibberish to me, and even PhDs in other scientific fields spending 30+ minutes with Google barely score above random chance. Claude 3 Opus currently gets ~60%,9 compared to in-domain PhDs who get ~80%—and I expect this benchmark to fall as well, in the next generation or two.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>年复一年，怀疑论者一再声称“深度学习做不到X”，却迅速被事实推翻。8如果说我们从过去中学到了什么教训，那就是：8 这里是Yann LeCun在2022年预测，即便是GPT-5000也无法对现实世界的物理互动进行推理；而一年后，GPT-4显然轻而易举地做到了。这里是Gary Marcus在GPT-2之后预测的壁垒被GPT-3解决，以及他在GPT-3之后预测的壁垒被GPT-4解决。这里是Bryan Caplan教授输掉了他首次公开赌局（此前他以完美的公开赌博记录闻名）。2023年1月，当GPT-3.5在他的经济学期中考试中得了个D后，Caplan教授与Matthew Barnett打赌，到2029年没有任何AI能在他的经济学期中考试中拿到A。仅仅两个月后，GPT-4问世，随即在他的期中考试中取得了A（而且这可能是他班上最高的分数之一）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Over and over again, year after year, skeptics have claimed “deep learning won’t be able to do X” and have been quickly proven wrong.8 If there’s one lesson we’ve learned from the past 8 Here’s Yann LeCun predicting in 2022 that even GPT-5000 won’t be able to reason about physical interactions with the real world; GPT-4 obviously does it with ease a year later. Here’s Gary Marcus’s walls predicted after GPT-2 being solved by GPT-3, and the walls he predicted after GPT-3 being solved by GPT-4. Here’s Prof. Bryan Caplan losing his first-ever public bet (after previously famously having a perfect public betting track record). In January 2023, after GPT-3.5 got a D on his economics midterm, Prof. Caplan bet Matthew Barnett that no AI would get an A on his economics midterms by 2029. Just two months later, when GPT-4 came out, it promptly scored an A on his midterm (and it would have been one of the highest scores in his class).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>9 在钻石数据集上，模型采用思维链方式尝试32次后的多数投票结果。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>9 On the diamond set, majority voting of the model trying 32 times with chain-of-thought.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 18 图9：GPQA问题示例。模型在这方面的表现已经胜过我，我们很可能很快就会突破专家博士级别……</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 18 Figure 9: Example GPQA questions. Models are already better at this than I am, and we’ll probably crack expertPhD-level soon. . .</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 19 计算数量级 这一切是如何发生的？深度学习的魔力在于它就是管用——而且趋势线惊人地一致，尽管每一步都有反对者。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 19 Counting the OOMs How did this happen? The magic of deep learning is that it just works—and the trendlines have been astonishingly consistent, despite naysayers at every turn.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>大致、定性地）推断能力的提升。11 这就是少数有先见之明的人预见到GPT-4到来的原因。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>tively) extrapolate capability improvements.11 That’s how a few prescient individuals saw GPT-4 coming.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们可以将GPT-2到GPT-4这四年间的进展分解为三类规模扩展：图10：以OpenAI Sora为例展示扩展计算力的效果。随着有效计算力每增加一个数量级，模型可预测地、可靠地变得更好。10 如果我们能计算数量级，就能（大致、定性地）推断能力的提升。10 而且值得注意的是，这些趋势线有多么一致。将最初的缩放定律论文与后来对计算力和计算效率扩展的一些估算结合起来，意味着在超过15个数量级（有效计算力上超过1,000,000,000,000,000倍！）的范围内，存在一条一致的扩展趋势。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We can decompose the progress in the four years from GPT-2 to GPT-4 into three categories of scaleups: Figure 10: The effects of scaling compute, in the example of OpenAI Sora. With each OOM of effective compute, models predictably, reliably get better.10 If we can count the OOMs, we can (roughly, qualita10 And it’s worth noting just how consistent these trendlines are. Combining the original scaling laws paper with some of the estimates on compute and compute efficiency scaling since then implies a consistent scaling trend for over 15 orders of magnitude (over 1,000,000,000,000,000x in effective compute)!</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>1. 计算力：我们正使用更强大的计算机来训练这些模型。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>1. compute: We’re using much bigger computers to train these models.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>2. 算法效率：算法在不断进步。其中许多进步起到了“计算力倍增器”的作用，我们可以将它们统一在有效计算力增长的尺度上。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>2. algorithmic efficiencies: There’s a continuous trend of algorithmic progress. Many of these act as “compute multipliers,” and we can put them on a unified scale of growing effective compute.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>3. “解除束缚”式增益：默认情况下，模型学习了许多惊人的原始能力，但它们因各种愚蠢的方式受到束缚，限制了其实用价值。通过简单的算法改进，如基于人类反馈的强化学习（RLHF）、思维链（CoT）、工具和支架技术，我们可以解锁大量潜在能力。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>3. ”unhobbling” gains: By default, models learn a lot of amazing raw capabilities, but they are hobbled in all sorts of dumb ways, limiting their practical value. With simple algorithmic improvements like reinforcement learning from human feedback (RLHF), chain-of-thought (CoT), tools, and scaffolding, we can unlock significant latent capabilities.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>11 一种常见的误解是认为缩放定律仅在困惑度损失上成立，但我们同样在基准测试的下游表现中观察到非常清晰且一致的缩放行为。这通常只是找到正确的双对数图的问题。例如，在 GPT-4 的博文中，他们展示了在使用 MLPR（平均对数通过率）的情况下，编码问题的性能在超过 6 个数量级（1,000,000 倍）的计算量上呈现一致的缩放行为。《涌现能力是海市蜃楼吗？》这篇论文也提出了类似的观点；只要选择合适的度量标准，下游任务的表现几乎总是存在一致的趋势。更广泛地说，“缩放假设”的定性观察——模型能力随规模呈现非常清晰的趋势——早于损失缩放曲线；“缩放定律”的研究只是对这一现象的形式化测量。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>11 A common misconception is that scaling only holds for perplexity loss, but we see very clear and consistent scaling behavior on downstream performance on benchmarks as well. It’s usually just a matter of finding the right loglog graph. For example, in the GPT-4 blog post, they show consistent scaling behavior for performance on coding problems over 6 OOMs (1,000,000x) of compute, using MLPR (mean log pass rate). The “Are Emergent Abilities a Mirage?” paper makes a similar point; with the right choice of metric, there is almost always a consistent trend for performance on downstream tasks. More generally, the “scaling hypothesis” qualitative observation—very clear trends on model capability with scale—predates loss-scaling-curves; the “scaling laws” work was just a formal measurement of this.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 20 我们可以“计算数量级”来追踪这些轴上的改进：即以有效计算量为单位，追踪每个方面的规模扩展。3 倍是 0.5 个数量级；10 倍是 1 个数量级；30 倍是 1.5 个数量级；100 倍是 2 个数量级；以此类推。我们也可以审视，在 GPT-4 的基础上，从 2023 年到 2027 年我们应当期待什么。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 20 We can “count the OOMs” of improvement along these axes: that is, trace the scaleup for each in units of effective compute. 3x is 0.5 OOMs; 10x is 1 OOM; 30x is 1.5 OOMs; 100x is 2 OOMs; and so on. We can also look at what we should expect on top of GPT-4, from 2023 to 2027.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我将逐一分析，但结论是明确的：我们正在迅速跨越数量级。数据墙可能带来潜在的逆风，我稍后会讨论——但总体而言，到 2027 年，我们似乎很可能在 GPT-4 的基础上再经历一次相当于 GPT-2 到 GPT-4 规模的跃升。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>I’ll go through each one-by-one, but the upshot is clear: we are rapidly racing through the OOMs. There are potential headwinds in the data wall, which I’ll address—but overall, it seems likely that we should expect another GPT-2-to-GPT-4-sized jump, on top of GPT-4, by 2027.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>计算 我将从近期进展中最常被讨论的驱动因素开始：向模型投入（大量）更多的计算资源。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Compute I’ll start with the most commonly-discussed driver of recent progress: throwing (a lot) more compute at models.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>许多人认为这仅仅归因于摩尔定律。但即使在摩尔定律鼎盛的旧日，其进展也相对缓慢——大约每十年 1 到 1.5 个数量级。而我们看到的计算规模扩展要快得多——接近摩尔定律速度的 5 倍——这反而源于巨额投资。（在一个模型上花费哪怕一百万美元曾被认为是无人会考虑的荒谬想法，如今却已是零花钱！）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Many people assume that this is simply due to Moore’s Law. But even in the old days when Moore’s Law was in its heyday, it was comparatively glacial—perhaps 1-1.5 OOMs per decade. We are seeing much more rapid scaleups in compute—close to 5x the speed of Moore’s law—instead because of mammoth investment. (Spending even a million dollars on a single model used to be an outrageous thought nobody would entertain, and now that’s pocket change!)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>表 1：Epoch AI 对 GPT-2 至 GPT-4 计算量的估算。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Table 1: Estimates of compute for GPT-2 to GPT-4 by Epoch AI.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>模型 估算计算量 增长 GPT-2 (2019) ~4e21 FLOP GPT-3 (2020) ~3e23 FLOP + ~2 个数量级 GPT-4 (2023) 8e24 至 4e25 FLOP + ~1.5–2 个数量级 我们可以使用 Epoch AI（因其对 AI 趋势的卓越分析而广受尊敬的来源）的公开估算，来追踪从 2019 年到 2023 年的计算规模扩展。GPT-2 到 GPT-3 是一次快速的规模扩展；当时存在大量的计算余量，从较小规模的实验扩展到使用整个数据中心来训练大型语言模型。随着 GPT-3 到 GPT-4 的规模扩展，我们过渡到了现代模式：必须为下一个模型构建一个全新的（更大得多的）集群。然而态势感知 21 显著的增长仍在继续。总体而言，Epoch AI 的估算表明，GPT-4 的训练使用的原始计算量大约是 GPT-2 的 3,000 到 10,000 倍。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Model Estimated Compute Growth GPT-2 (2019) ~4e21 FLOP GPT-3 (2020) ~3e23 FLOP + ~2 OOMs GPT-4 (2023) 8e24 to 4e25 FLOP + ~1.5–2 OOMs We can use public estimates from Epoch AI (a source widely respected for its excellent analysis of AI trends) to trace the compute scaleup from 2019 to 2023. GPT-2 to GPT-3 was a quick scaleup; there was a large overhang of compute, scaling from a smaller experiment to using an entire datacenter to train a large language model. With the scaleup from GPT-3 to GPT4, we transitioned to the modern regime: having to build an entirely new (much bigger) cluster for the next model. And yet situational awareness 21 the dramatic growth continued. Overall, Epoch AI estimates suggest that GPT-4 training used ~3,000x-10,000x more raw compute than GPT-2.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>从大处着眼，这只是一个更长期趋势的延续。在过去十五年里，主要由于投资的大规模扩展（以及以 GPU 和 TPU 的形式为 AI 工作负载专门定制芯片），用于前沿 AI 系统的训练计算量大约以每年 0.5 个数量级的速度增长。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In broad strokes, this is just the continuation of a longer-running trend. For the last decade and a half, primarily because of broad scaleups in investment (and specializing chips for AI workloads in the form of GPUs and TPUs), the training compute used for frontier AI systems has grown at roughly ~0.5 OOMs/year.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图 11：随时间推移，显著深度学习模型的训练计算量。来源：Epoch AI。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 11: Training compute of notable deep learning models over time. Source: Epoch AI.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>从GPT-2到GPT-3一年内的算力扩张是异乎寻常的超前储备，但所有迹象表明长期趋势将持续。硅谷的传闻工厂里充斥着巨额GPU订单的戏剧性故事。所涉投资规模将非同寻常——但已在推进之中。我将在本系列后续的IIIa章节《竞逐万亿美元集群》中详述；基于该分析，到2027年底，再增加2个数量级的算力（数百亿美元规模的集群）极有可能实现；甚至接近增加3个数量级算力（千亿美元以上）的集群也似有可能（据传微软/OpenAI已在筹划）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The compute scaleup from GPT-2 to GPT-3 in a year was an unusual overhang, but all the indications are that the longerrun trend will continue. The SF-rumor-mill is abreast with dramatic tales of huge GPU orders. The investments involved will be extraordinary—but they are in motion. I go into this more later in the series, in IIIa. Racing to the Trillion-Dollar Cluster; based on that analysis, an additional 2 OOMs of compute (a cluster in the $10s of billions) seems very likely to happen by the end of 2027; even a cluster closer to +3 OOMs of compute ($100 billion+) seems plausible (and is rumored to be in the works at Microsoft/OpenAI).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 22 算法效率 当算力的大规模投资吸引所有目光时，算法进步或许是同样重要的进展驱动因素（且被严重低估）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 22 Algorithmic efficiencies While massive investments in compute get all the attention, algorithmic progress is probably a similarly important driver of progress (and has been dramatically underrated).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>欲知算法进步影响之巨，请看下图（图12），展示了仅两年内，在MATH基准测试（高中数学竞赛题）上达到约50%准确率的成本下降情况。（作为对比，一位对数学不特别感兴趣的计算机科学博士生得分40%，因此该成绩已相当出色。）推理效率在不到两年内提升了近3个数量级——即1000倍。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>To see just how big of a deal algorithmic progress can be, consider the following illustration (Figure 12) of the drop in price to attain ~50% accuracy on the MATH benchmark (high school competition math) over just two years. (For comparison, a computer science PhD student who didn’t particularly like math scored 40%, so this is already quite good.) Inference efficiency improved by nearly 3 OOMs—1,000x—in less than two years.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图12：达到约50% MATH性能的相对推理成本粗略估算。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 12: Rough estimate on relative inference cost of attaining ~50% MATH performance.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>尽管这些数据仅针对推理效率（可能与训练效率提升相对应，也可能无关，后者的数据更难从公开信息中推断），但它们清楚表明，算法进步的空间和实际进展都是巨大的。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Though these are numbers just for inference efficiency (which may or may not correspond to training efficiency improvements, where numbers are harder to infer from public data), they make clear there is an enormous amount of algorithmic progress possible and happening.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>计算过程如下。Gemini 1.5 Flash在MATH上得分为54.9%，每百万token成本为0.35美元/1.05美元（输入/输出）。GPT-4在预发布时MATH得分为42.5%，2023年初为52.9%，每百万token成本为30美元/60美元（输入/输出）；这比Gemini 1.5 Flash的每token成本贵了85倍/57倍（输入/输出）。为保守起见，我在上文中采用30倍成本下降的估算（考虑到Gemini 1.5 Flash可能使用更多token来推理问题）。Minerva 540B在MATH上通过64个样本的多数投票得分为50.3%。一位懂行的朋友估计，其基础模型的推理成本可能比GPT-4贵23倍。然而，经快速抽查，Minerva每个答案似乎使用略少的token。更重要的是，Minerva需要64个样本才能达到该性能，若天真地通过推理API运行，成本天真地意味着64倍乘数。实际上，评估时可缓存提示token；鉴于少样本提示，提示token可能占总成本的大部分，即使考虑输出token。假设获取单个样本时输出token占成本的三分之一，则在缓存下使用多数投票@64仅导致成本增加约20倍。为保守起见，我在上文中采用20倍成本下降的粗略数字（即使通过API运行此方法的天真推理成本降幅会更大）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Calculations below. Gemini 1.5 Flash scores 54.9% on MATH, and costs $0.35/$1.05 (input/output) per million tokens. GPT-4 scored 42.5% on MATH prelease and 52.9% on MATH in early 2023, and cost $30/$60 (input/output) per million tokens; that’s 85x/57x (input/output) more expensive per token than Gemini 1.5 Flash. To be conservative, I use an estimate of 30x cost decrease above (accounting for Gemini 1.5 Flash possibly using more tokens to reason through problems). Minerva540B scores 50.3% on MATH, using majority voting among 64 samples. A knowledgeable friend estimates the base model here is probably 23x more expensive to inference than GPT-4. However, Minerva seems to use somewhat fewer tokens per answer on a quick spot check. More importantly, Minerva needed 64 samples to achieve that performance, naively implying a 64x multiple on cost if you e.g. naively ran this via an inference API. In practice, prompt tokens can be cached when running an eval; given a few-shot prompt, prompt tokens are likely a majority of the cost, even accounting for output tokens. Supposing output tokens are a third of the cost for getting a single sample, that would imply only a ~20x increase in cost from the maj@64 with caching. To be conservative, I use the rough number of a 20x cost decrease in the above (even if the naive decrease in inference cost from running this via an API would be larger).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 23 在本文中，我将区分两种算法进步。此处，我先阐述“范式内”的算法改进——那些直接提升基础模型性能，并直接体现为计算效率或计算倍增器的改进。例如，更优的算法可能让我们用减少10倍的训练算力实现相同性能。反过来，这相当于有效算力提升了10倍（1个数量级）。（稍后，我会讨论“解锁”技术，可将其视为“范式扩展/应用扩展”的算法进步，释放基础模型的能力。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 23 In this piece, I’ll separate out two kinds of algorithmic progress. Here, I’ll start by covering “within-paradigm” algorithmic improvements—those that simply result in better base models, and that straightforwardly act as compute efficiencies or compute multipliers. For example, a better algorithm might allow us to achieve the same performance but with 10x less training compute. In turn, that would act as a 10x (1 OOM) increase in effective compute. (Later, I’ll cover “unhobbling,” which you can think of as “paradigm-expanding/application-expanding” algorithmic progress that unlocks capabilities of base models.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>如果我们退一步审视长期趋势，会发现新的算法改进似乎以相当稳定的速度涌现。单个发现显得随机，且每一步都似有难以逾越的障碍——但长期趋势线是可预测的，在图表上呈一条直线。要相信趋势线。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>If we step back and look at the long-term trends, we seem to find new algorithmic improvements at a fairly consistent rate. Individual discoveries seem random, and at every turn, there seem insurmountable obstacles—but the long-run trendline is predictable, a straight line on a graph. Trust the trendline.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>ImageNet的数据最为充分（其算法研究大多公开，且数据可追溯十年），在2012年至2021年的九年间，我们持续将计算效率提升了约0.5个数量级/年。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We have the best data for ImageNet (where algorithmic research has been mostly public and we have data stretching back a decade), for which we have consistently improved compute efficiency by roughly ~0.5 OOMs/year across the 9-year period between 2012 and 2021.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>这意义重大：意味着四年后，我们能用约百分之一的算力实现同等性能（相应地，相同算力下性能大幅提升！）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>That’s a huge deal: that means 4 years later, we can achieve the same level of performance for ~100x less compute (and concomitantly, much higher performance for the same compute!).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图13：我们可衡量算法进步：2021年与2012年相比，训练同等性能模型所需算力减少了多少？我们看到约0.5个数量级/年的算法效率提升趋势。来源：Erdil与Besiroglu 2022年。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 13: We can measure algorithmic progress: how much less compute is needed in 2021 compared to 2012 to train a model with the same performance? We see a trend of ~0.5 OOMs/year of algorithmic efficiency. Source: Erdil and Besiroglu 2022.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>遗憾的是，由于各实验室不公布相关内部数据，衡量过去四年中前沿大语言模型的算法进步变得更为困难。态势感知 24 EpochAI针对语言建模复现了其在ImageNet上的研究，估计2012年至2023年间大语言模型的算法效率提升趋势也约为0.5个数量级/年。（但误差范围更大，且未涵盖部分近期增益，因为领先实验室已停止公布其算法效率。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Unfortunately, since labs don’t publish internal data on this, it’s harder to measure algorithmic progress for frontier LLMs situational awareness 24 over the last four years. EpochAI has new work replicating their results on ImageNet for language modeling, and estimate a similar ~0.5 OOMs/year of algorithmic efficiency trend in LLMs from 2012 to 2023. (This has wider error bars though, and doesn’t capture some more recent gains, since the leading labs have stopped publishing their algorithmic efficiencies.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图14：Epoch AI对语言建模中算法效率的估算。其估算表明，我们在八年内实现了约4个数量级的效率提升。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 14: Estimates by Epoch AI of algorithmic efficiencies in language modeling. Their estimates suggest we’ve made ~4 OOMs of efficiency gains in 8 years.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>12 尽管这些是推理效率（而非必然的训练效率），且在一定程度上反映了针对推理的优化，但a)它们表明总体上巨大的算法进步是可能的且正在发生，b)算法改进往往同时提升训练效率和推理效率，例如通过减少所需参数数量。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>12 Though these are inference efficiencies (rather than necessarily training efficiencies), and to some extent will reflect inference-specific optimizations, a) they suggest enormous amounts of algorithmic progress is possible and happening in general, and b) it’s often the case that an algorithmic improvements is both a training efficiency gain and an inference efficiency, for example by reducing the number of parameters necessary.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>更直接地观察过去四年，根据论文，GPT-2到GPT-3基本是简单的规模扩展，但自GPT-3以来已出现许多公开已知或可公开推断的增益：13 GPT-3：每百万令牌60美元，GPT-4：每百万输入令牌30美元，每百万输出令牌60美元。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>More directly looking at the last 4 years, GPT-2 to GPT-3 was basically a simple scaleup (according to the paper), but there have been many publicly-known and publicly-inferable gains since GPT-3: 13 GPT-3: $60/1M tokens, GPT-4: $30/1M input tokens and $60/1M output tokens.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 我们可以从API成本中推断出增益：12——GPT-4在发布时，其成本与GPT-3发布时大致相同，尽管性能提升极其巨大。13（如果我们根据缩放定律进行简单且过于简化的粗略估算，这表明从GPT-3到GPT-4的有效计算量增长中，大约有一半可能来自算法改进。14）——自一年前GPT-4发布以来，随着GPT-4o的推出，OpenAI对GPT-4级别模型的定价又下降了6倍/4倍（输入/输出）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• We can infer gains from API costs:12 – GPT-4, on release, cost ~the same as GPT-3 when it was released, despite the absolutely enormous performance increase.13 (If we do a naive and oversimplified back-of-theenvelope estimate based on scaling laws, this suggests that perhaps roughly half the effective compute increase from GPT-3 to GPT-4 came from algorithmic improvements.14) – Since the GPT-4 release a year ago, OpenAI prices for GPT-4-level models have fallen another 6x/4x (input/output) with the release of GPT-4o.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>14 Chinchilla缩放定律指出，应等比例地扩大参数量和数据的规模。也就是说，参数量增长的有效计算量增长的“OOMs数的一半”。同时，参数量直观上大致与推理成本成正比。在其他条件相同的情况下，恒定的推理成本意味着有效计算量增长的OOMs中有一半被算法收益所“抵消”。不过，需要明确的是，这是一个非常简单的计算（仅用于粗略说明），存在多种错误。可能存在特定的推理优化（不会转化为训练效率）；也可能存在不会减少参数量（因而不会转化为推理效率）的训练效率提升；等等。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>14 Chinchilla scaling laws say that one should scale parameter count and data equally. That is, parameter count grows “half the OOMs” of the OOMs that effective training compute grows. At the same time, parameter count is intuitively roughly proportional to inference costs. All else equal, constant inference costs thus implies that half of the OOMs of effective compute growth were “canceled out” by algorithmic win. That said, to be clear, this is a very naive calculation (just meant for a rough illustration) that is wrong in various ways. There may be inferencespecific optimizations (that don’t translate into training efficiency); there may be training efficiencies that don’t reduce parameter count (and thus don’t translate into inference efficiency); and so on.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 25 比最初的GPT-4便宜85倍/57倍（输入/输出）（非凡的增益！）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 25 85x/57x (input/output) less than the original GPT-4 (extraordinary gains!).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• Chinchilla缩放定律带来了3倍以上（0.5个OOM以上）的效率增益。16</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Chinchilla scaling laws give a 3x+ (0.5 OOMs+) efficiency gain.16</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>– 最近发布的Gemini 1.5 Flash，提供了介于“GPT-3.75级别”和GPT-4级别之间的性能，15而其成本为：15 Gemini 1.5 Flash在LMSys聊天机器人排行榜上的排名与GPT-4相似（高于最初的GPT-4，低于更新版本的GPT-4），在MATH和GPQA（衡量推理能力的评估）上的性能与最初的GPT-4相当，而在MMLU（一个更侧重于衡量知识的评估）上，其性能大致介于GPT-3.5和GPT-4之间。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>– Gemini 1.5 Flash, recently released, offers between “GPT3.75-level” and GPT-4-level performance,15 while costing 15 Gemini 1.5 Flash ranks similarly to GPT-4 (higher than original GPT-4, lower than updated versions of GPT-4) on LMSys, a chatbot leaderboard, and has similar performance on MATH and GPQA (evals that measure reasoning) as the original GPT-4, while landing roughly in the middle between GPT3.5 and GPT-4 on MMLU (an eval that more heavily weights towards measuring knowledge).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>16 在~GPT-3规模下，增益超过3倍；在更大规模下，增益更高。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>16 At ~GPT-3 scale, more than 3x at larger scales.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• Gemini 1.5 Pro声称在计算效率上有重大增益（性能优于Gemini 1.0 Ultra，同时使用“显著更少”的计算资源），其中混合专家（MoE）被突出为架构上的改变。其他论文也声称MoE在计算量上有数倍的实质性提升。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Gemini 1.5 Pro claimed major compute efficiency gains (outperforming Gemini 1.0 Ultra, while using “significantly less” compute), with Mixture of Experts (MoE) as a highlighted architecture change. Other papers also claim a substantial multiple on compute from MoE.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 在架构、数据、训练栈等方面，一直都有许多微调和增益。17</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• There have been many tweaks and gains on architecture, data, training stack, etc. all the time.17</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>17 例如，这篇论文比较了GPT-3风格的普通Transformer与多年来发表的各种简单架构和训练方案改动（如用RMSnorm替代layernorm、不同的位置嵌入、SwiGlu激活函数、用AdamW优化器替代Adam等），他们称之为“Transformer++”，暗示了在小规模下至少有6倍的增益。综合来看，公开信息表明，从GPT-2到GPT-4的跃升包含了1-2个OOM的算法效率增益。18</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>17 For example, this paper contains a comparison of a GPT-3-style vanilla Transformer to various simple changes to architecture and training recipe published over the years (RMSnorms instead of layernorm, different positional embeddings, SwiGlu activation, AdamW optimizer instead of Adam, etc.), what they call “Transformer++”, implying a 6x gain at least at small scale. Put together, public information suggests that the GPT-2 to GPT-4 jump included 1-2 OOMs of algorithmic efficiency gains.18</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>18 如果我们采用每年0.5个OOM的趋势，且GPT-2与GPT-4发布相隔4年，那将是2个OOM。然而，从GPT-2到GPT-3是一次简单的规模扩展（在诸如Transformer等带来巨大增益之后），而OpenAI声称GPT-4的预训练于2022年完成，这可能意味着我们应该计入的是接近2年的算法进步。1个OOM的算法效率似乎是一个保守的下限。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>18 If we take the trend of 0.5 OOMs/year, and 4 years between GPT-2 and GPT-4 release, that would be 2 OOMs. However, GPT-2 to GPT-3 was a simple scaleup (after big gains from e.g. Transformers), and OpenAI claims GPT-4 pretraining finished in 2022, which could mean we’re looking at closer to 2 years worth of algorithmic progress that we should be counting here. 1 OOM of algorithmic efficiency seems like a conservative lower bound.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图15：分解进步：计算效率与算法效率。（粗略图示。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 15: Decomposing progress: compute and algorithmic efficiencies. (Rough illustration.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 26 在GPT-4之后的四年里，我们应预期这一趋势将持续：19 平均每年约0.5个数量级的计算效率提升19 至少，鉴于十多年来持续的算法改进，举证责任在于那些认为这一切会突然停滞的人！</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 26 Over the 4 years following GPT-4, we should expect the trend to continue:19 on average ~0.5 OOMs/year of compute effi19 At the very least, given over a decade of consistent algorithmic improvements, the burden of proof would be on those who would suggest it will all suddenly come to a halt!</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>效率提升，即到2027年相比GPT-4约有2个数量级的增益。虽然随着我们摘取低垂的果实，计算效率的提升将变得更难找到，但人工智能实验室在资金和人才上的投入正迅速增长，以寻找新的算法改进。20 （至少，可公开推断的推理成本效率，20 考虑到集群成本，3倍计算效率的经济回报将以数百亿美元计。似乎完全没有放缓。）在高端，我们甚至可能看到更根本的、类似Transformer21 21 大致相当于约10倍的增益。的突破，带来更大的收益。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>ciency, i.e. ~2 OOMs of gains compared to GPT-4 by 2027. While compute efficiencies will become harder to find as we pick the low-hanging fruit, AI lab investments in money and talent to find new algorithmic improvements are growing rapidly. 20 (The publicly-inferable inference cost efficiencies, 20 The economic returns to a 3x compute efficiency will be measured in the $10s of billions or more, given cluster costs. at least, don’t seem to have slowed down at all.) On the high end, we could even see more fundamental, Transformer-like21 21 Very roughly something like a ~10x gain. breakthroughs with even bigger gains.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>综合来看，这表明到2027年底，我们应预期算法效率相比GPT-4有1到3个数量级的增益，可能的最佳猜测是约2个数量级。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Put together, this suggests we should expect something like 1-3 OOMs of algorithmic efficiency gains (compared to GPT-4) by the end of 2027, maybe with a best guess of ~2 OOMs.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>数据墙 这一切存在一个潜在的重要变数：我们正在耗尽互联网数据。这可能意味着，很快，用更多抓取数据天真地预训练更大语言模型的做法将开始遇到严重瓶颈。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The data wall There is a potentially important source of variance for all of this: we’re running out of internet data. That could mean that, very soon, the naive approach to pretraining larger language models on more scraped data could start hitting serious bottlenecks.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>前沿模型已在大部分互联网上训练。例如，Llama 3在超过15万亿个词元上训练。Common Crawl是一个用于大语言模型训练的大部分互联网转储，原始数据超过100万亿个词元，但其中很多是垃圾信息和重复内容（例如，相对简单的去重后得到30万亿个词元，意味着Llama 3已经基本用上了所有数据）。此外，对于像代码这样更具体的领域，词元数量更少，例如，估计公共GitHub仓库的词元数量在数万亿以下。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Frontier models are already trained on much of the internet. Llama 3, for example, was trained on over 15T tokens. Common Crawl, a dump of much of the internet used for LLM training, is >100T tokens raw, though much of that is spam and duplication (e.g., a relatively simple deduplication leads to 30T tokens, implying Llama 3 would already be using basically all the data). Moreover, for more specific domains like code, there are many fewer tokens still, e.g. public github repos are estimated to be in low trillions of tokens.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>你可以通过重复数据来走得更远一些，但相关的学术研究表明，重复只能带你走这么远，发现经过16个周期（16倍重复）后，收益极快地递减至零。在某个时点，即使有更多（有效）计算，由于数据约束，让你的模型变得更好可能变得困难得多。这不可低估：我们一直在乘态势感知 27 扩展曲线的东风，乘语言建模预训练范式的浪潮，如果没有新东西出现，这个范式将（至少天真地）耗尽。尽管有大量投资，我们会进入平台期。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>You can go somewhat further by repeating data, but academic work on this suggests that repetition only gets you so far, finding that after 16 epochs (a 16-fold repetition), returns diminish extremely fast to nil. At some point, even with more (effective) compute, making your models better can become much tougher because of the data constraint. This isn’t to be understated: we’ve been riding the situational awareness 27 scaling curves, riding the wave of the language-modelingpretraining-paradigm, and without something new here, this paradigm will (at least naively) run out. Despite the massive investments, we’d plateau.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>据报道，所有实验室都在为绕过这一问题的新算法改进或方法进行大规模研究押注。研究人员据说在尝试多种策略，从合成数据到自我对弈和强化学习方法。业内人士似乎非常乐观：Anthropic的CEO达里奥·阿莫代最近在一个播客中说：“如果你很天真地看，我们离数据耗尽不远了……我的猜测是这不会成为一个阻碍……有很多不同的方法可以做到。”当然，这方面的任何研究成果都是专有的，这些天已不再公开发表。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>All of the labs are rumored to be making massive research bets on new algorithmic improvements or approaches to get around this. Researchers are purportedly trying many strategies, from synthetic data to self-play and RL approaches. Industry insiders seem to be very bullish: Dario Amodei (CEO of Anthropic) recently said on a podcast: “if you look at it very naively we’re not that far from running out of data [. . . ] My guess is that this will not be a blocker [. . . ] There’s just many different ways to do it.” Of course, any research results on this are proprietary and not being published these days.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>除了内部人士的乐观态度外，我认为有一个强有力的直觉理由，说明为什么应该能找到训练模型的方法，使其样本效率大大提高（即通过算法改进，让模型从有限数据中学到更多）。想想你或我会如何学习一本内容密集的数学教科书：• 现代大语言模型在训练时所做的，本质上就是非常快速地浏览教科书，文字一闪而过，并没有在上面花费多少脑力。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In addition to insider bullishness, I think there’s a strong intuitive case for why it should be possible to find ways to train models with much better sample efficiency (algorithmic improvements that let them learn more from limited data). Consider how you or I would learn from a really dense math textbook: • What a modern LLM does during training is, essentially, very very quickly skim the textbook, the words just flying by, not spending much brain power on it.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 相反，当你或我阅读那本数学教科书时，我们会慢慢读上几页；然后在脑海中就材料进行内心独白，并与几个学习伙伴讨论；再读一两页；接着尝试做一些练习题，失败了，换种方式再试，获得一些反馈，不断尝试直到做对一道题；如此反复，直到最终对材料“豁然开朗”。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Rather, when you or I read that math textbook, we read a couple pages slowly; then have an internal monologue about the material in our heads and talk about it with a few study-buddies; read another page or two; then try some practice problems, fail, try them again in a different way, get some feedback on those problems, try again until we get a problem right; and so on, until eventually the material “clicks.”</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 如果你或我只能像大语言模型那样草草浏览一本内容密集的数学教科书，也几乎学不到什么。22 22 而且，只是反复重读同一本教科书，可能会导致死记硬背，而非真正理解。我认为这正是许多文科生通过数学课的方式！</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• You or I also wouldn’t learn much at all from a pass through a dense math textbook if all we could do was breeze through it like LLMs.22 22 And just rereading the same textbook over and over again might result in memorization, not understanding. I take it that’s how many wordcels pass math classes!</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 28 • 但或许，可以找到一些方法，融入人类消化一本内容密集的数学教科书的某些方面，让模型从有限数据中学到更多。简而言之，这类方法——就材料进行内心独白、与学习伙伴讨论、尝试并失败直到豁然开朗——正是许多合成数据/自我博弈/强化学习方法试图实现的目标。23</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 28 • But perhaps, then, there are ways to incorporate aspects of how humans would digest a dense math textbook to let the models learn much more from limited data. In a simplified sense, this sort of thing—having an internal monologue about material, having a discussion with a study-buddy, trying and failing at problems until it clicks—is what many synthetic data/self-play/RL approaches are trying to do.23</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>过去训练模型的最先进方法是简单而幼稚的，但它有效，所以没有人真正努力去攻克这些提高样本效率的方法。现在，随着这可能成为一个更大的限制，我们应该预期所有实验室都会投入数十亿美元和最聪明的人才去攻克它。深度学习中的一个常见模式是，需要付出大量努力（以及许多失败的项目）才能把细节做对，但最终某个显而易见且简单的方案的某个版本就能奏效。鉴于过去十年深度学习如何突破了每一个所谓的瓶颈，我的基本判断是，这里的情况也会类似。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The old state of the art of training models was simple and naive, but it worked, so nobody really tried hard to crack these approaches to sample efficiency. Now that it may become more of a constraint, we should expect all the labs to invest billions of dollars and their smartest minds into cracking it. A common pattern in deep learning is that it takes a lot of effort (and many failed projects) to get the details right, but eventually some version of the obvious and simple thing just works. Given how deep learning has managed to crash through every supposed wall over the last decade, my base case is that it will be similar here.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>23 另一种我觉得有趣的思考方式：在预训练和上下文学习之间存在一个“缺失的中间地带”。上下文学习是惊人的（而且与人类的样本效率不相上下）。例如，Gemini 1.5 Pro的论文讨论了在上下文中给模型提供关于Kalamang语言的教学材料（一本教科书、一本词典），这种语言只有不到200人使用，基本上在互联网上不存在——而模型学会了从英语翻译到Kalamang，达到了人类水平！在上下文中，模型能够像人类一样从教科书中学得很好（而且比仅仅将那一本教科书扔进预训练中学得要好得多）。当人类从教科书中学习时，他们能够通过练习将短期记忆/所学内容提炼为长期记忆/长期技能；然而，我们还没有等效的方法将上下文学习“提炼回权重中”。合成数据/自我博弈/强化学习等方法正在试图解决这个问题：让模型自主学习，然后思考并练习所学内容，将所学提炼回权重中。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>23 One other way of thinking about it I find interesting: there is a “missingmiddle” between pretraining and in-context learning. In-context learning is incredible (and competitive with human sample efficiency). For example, the Gemini 1.5 Pro paper discusses giving the model instructional materials (a textbook, a dictionary) on Kalamang, a language spoken by fewer than 200 people and basically not present on the internet, in context—and the model learns to translate from English to Kalamang at human-level! In context, the model is able to learn from the textbook as well as a human could (and much better than it would learn from just chucking that one textbook into pretraining). When a human learns from a textbook, they’re able to distill their shortterm memory/learnings into long-term memory/long-term skills with practice; however, we don’t have an equivalent way to distill in-context learning “back to the weights.” Synthetic data/selfplay/RL/etc are trying to fix that: let the model learn by itself, then think about it and practice what it learned, distilling that learning back into the weights.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>此外，似乎确实有可能通过攻克诸如合成数据之类的算法赌注，来显著提升模型性能。这里有一个直觉泵。当前的前沿模型如Llama 3是在互联网上训练的——而互联网内容大多低质，比如电商或SEO之类。许多LLM将绝大部分训练算力花在了这些低质内容上，而非真正高质量的数据（例如人们解决艰深科学问题的推理链）。想象一下，如果能将GPT-4级别的算力全部用于极高质量的数据——那可能会得到一个强大得多的模型。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Moreover, it actually seems possible that cracking one of these algorithmic bets like synthetic data could dramatically improve models. Here’s an intuition pump. Current frontier models like Llama 3 are trained on the internet— and the internet is mostly crap, like e-commerce or SEO or whatever. Many LLMs spend the vast majority of their training compute on this crap, rather than on really highquality data (e.g. reasoning chains of people working through difficult science problems). Imagine if you could spend GPT-4-level compute on entirely extremely highquality data—it could be a much, much more capable model.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>回顾AlphaGo也很有启发——它是首个在围棋上击败世界冠军的AI系统，比人们预想的时间早了数十年。24 24 另见Andrej Karpathy在此讨论的演讲。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>A look back at AlphaGo—the first AI system that beat the world champions at Go, decades before it was thought possible—is useful here as well.24 24 See also Andrej Karpathy’s talk discussing this here.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 第一步，AlphaGo通过模仿学习人类专家的围棋对局进行训练。这为其打下了基础。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• In step 1, AlphaGo was trained by imitation learning on expert human Go games. This gave it a foundation.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>情境意识 29 • 第二步，AlphaGo与自己进行了数百万局对弈。这使其在围棋上超越了人类：回想与李世石对局中著名的第37手，那是一步极其非凡而精妙、人类绝不会走出的棋。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 29 • In step 2, AlphaGo played millions of games against itself. This let it become superhuman at Go: remember the famous move 37 in the game against Lee Sedol, an extremely unusual but brilliant move a human would never have played.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>为LLM开发相当于第二步的方法，是克服数据墙的关键研究问题（而且，最终将成为超越人类智能水平的关键）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Developing the equivalent of step 2 for LLMs is a key research problem for overcoming the data wall (and, moreover, will ultimately be the key to surpassing human-level intelligence).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>所有这一切都说明，数据约束似乎给预测未来几年AI进展带来了很大的不确定性。确实存在进展停滞的可能（LLM可能仍像互联网一样影响重大，但我们无法达到真正疯狂的AGI）。但我认为，合理猜测是各大实验室会攻克这一难题，而这不仅会延续规模扩展曲线，还可能使模型能力实现巨大飞跃。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>All of this is to say that data constraints seem to inject large error bars either way into forecasting the coming years of AI progress. There’s a very real chance things stall out (LLMs might still be as big of a deal as the internet, but we wouldn’t get to truly crazy AGI). But I think it’s reasonable to guess that the labs will crack it, and that doing so will not just keep the scaling curves going, but possibly enable huge gains in model capability.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>顺便一提，这也意味着未来几年，不同实验室之间的差异会比现在更大。直到最近，最先进的技术都是公开发表的，因此大家基本在做同样的事。（而且新创公司或开源项目可以轻松与前沿竞争，因为方法已公开。）如今，关键的算法思想正变得日益专有。我预计各实验室的路线会大大分化，有些会比另一些进步更快——即便是现在看似前沿的实验室，也可能在数据墙上停滞，而其他实验室则取得突破，从而一骑绝尘。开源项目将更难竞争。这无疑会让事情变得有趣。（而且，一旦有实验室攻克难题，其突破将成为AGI的关键，通向超级智能的关键——成为美国最宝贵的机密之一。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>As an aside, this also means that we should expect more variance between the different labs in coming years compared to today. Up until recently, the state of the art techniques were published, so everyone was basically doing the same thing. (And new upstarts or open source projects could easily compete with the frontier, since the recipe was published.) Now, key algorithmic ideas are becoming increasingly proprietary. I’d expect labs’ approaches to diverge much more, and some to make faster progress than others—even a lab that seems on the frontier now could get stuck on the data wall while others make a breakthrough that lets them race ahead. And open source will have a much harder time competing. It will certainly make things interesting. (And if and when a lab figures it out, their breakthrough will be the key to AGI, key to superintelligence—one of the United States’ most prized secrets.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>情境意识 30 解除束缚 最后，最难量化但同样重要的一类改进：我称之为“解除束缚”。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 30 Unhobbling Finally, the hardest to quantify—but no less important—category of improvements: what I’ll call “unhobbling.”</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>想象一下，当你被要求解决一道难题时，必须立刻用脑海中闪现的第一个想法作答。显而易见，除了最简单的问题，你将寸步难行。然而直到最近，我们正是以这种方式让大语言模型解答数学题的。相反，我们大多数人会借助草稿纸逐步推演，从而攻克难度高得多的问题。“思维链”提示为大语言模型解锁了这一能力。尽管它们拥有出色的原始能力，但由于被以一种明显的方式束缚，其数学表现远低于潜能，而一个小小的算法调整便释放了更大的能力。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Imagine if when asked to solve a hard math problem, you had to instantly answer with the very first thing that came to mind. It seems obvious that you would have a hard time, except for the simplest problems. But until recently, that’s how we had LLMs solve math problems. Instead, most of us work through the problem step-by-step on a scratchpad, and are able to solve much more difficult problems that way. “Chain-of-thought” prompting unlocked that for LLMs. Despite excellent raw capabilities, they were much worse at math than they could be because they were hobbled in an obvious way, and it took a small algorithmic tweak to unlock much greater capabilities.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>过去几年，我们在“解除束缚”模型方面取得了巨大进展。这些算法改进不仅限于训练更好的基础模型——通常只消耗预训练计算量的一小部分——便释放了模型的能力：• 基于人类反馈的强化学习（RLHF）。基础模型拥有惊人的潜在能力，25但它们原始且极难使用。尽管公众对RLHF的普遍认知是它仅用于屏蔽脏话，但RLHF的关键作用在于让模型真正有用并具备商业价值（而非让模型预测随机的互联网文本，而是让其实际运用能力来尝试回答你的问题！）。这正是ChatGPT的魔力所在——出色的RLHF首次使模型对真实用户变得可用且有用。最初的InstructGPT论文对此有精妙量化：在人类评分偏好中，一个经RLHF训练的小模型相当于一个未经RLHF训练、规模大100倍以上的模型。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We’ve made huge strides in “unhobbling” models over the past few years. These are algorithmic improvements beyond just training better base models—and often only use a fraction of pretraining compute—that unleash model capabilities: • Reinforcement learning from human feedback (RLHF). Base models have incredible latent capabilities,25 but they’re raw and 25 That’s the magic of unsupervised learning, in some sense: to better predict the next token, to make perplexity go down, models learn incredibly rich internal representations, everything from (famously) sentiment to complex world models. But, out of the box, they’re hobbled: they’re using their incredible internal representations merely to predict the next token in random internet text, and rather than applying them in the best way to actually try to solve your problem.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>25 从某种意义上说，这正是无监督学习的魔力：为了更好地预测下一个标记、降低困惑度，模型学会了极其丰富的内部表征，从（著名的）情感识别到复杂的世界模型，无所不包。但开箱即用时，它们是被束缚的：它们只是在用那些惊人的内部表征预测随机互联网文本中的下一个标记，而非以最佳方式将其真正应用于解决你的问题。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>incredibly hard to work with. While the popular conception of RLHF is that it merely censors swear words, RLHF has been key to making models actually useful and commercially valuable (rather than making models predict random internet text, get them to actually apply their capabilities to try to answer your question!). This was the magic of ChatGPT—well-done RLHF made models usable and useful to real people for the first time. The original InstructGPT paper has a great quantification of this: an RLHF’d small model was equivalent to a non-RLHF’d >100x larger model in terms of human rater preference.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 思维链（CoT）。如前所述。CoT在仅仅两年前才开始广泛使用，它能在数学/推理问题上提供相当于超过10倍的有效计算量提升。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Chain of Thought (CoT). As discussed. CoT started being widely used just 2 years ago and can provide the equivalent of a >10x effective compute increase on math/reasoning problems.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 脚手架。可以将其视为CoT++：不仅仅要求一个模型解决问题，而是让一个模型制定攻击计划，另一个提出一系列可能的解决方案，再另一个进行评判，以此类推。例如，在HumanEval（编程问题）上，简单的脚手架使GPT-3.5超越了未使用脚手架的GPT-4。在SWE-Bench（解决现实世界软件工程任务的基准测试）上，GPT-4的正确率仅约2%，而借助Devin的智能体脚手架，这一比例跃升至14-23%。（不过，解锁自主性仍处于起步阶段，我稍后会进一步讨论。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Scaffolding. Think of CoT++: rather than just asking a model situational awareness 31 to solve a problem, have one model make a plan of attack, have another propose a bunch of possible solutions, have another critique it, and so on. For example, on HumanEval (coding problems), simple scaffolding enables GPT-3.5 to outperform un-scaffolded GPT-4. On SWE-Bench (a benchmark of solving real-world software engineering tasks), GPT4 can only solve ~2% correctly, while with Devin’s agent scaffolding it jumps to 14-23%. (Unlocking agency is only in its infancy though, as I’ll discuss more later.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 工具：试想如果人类被禁止使用计算器或电脑会怎样。我们在这方面才刚起步，但ChatGPT现在已能使用网页浏览器、运行部分代码等等。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Tools: Imagine if humans weren’t allowed to use calculators or computers. We’re only at the beginning here, but ChatGPT can now use a web browser, run some code, and so on.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 上下文长度。模型已从2千令牌上下文（GPT-3）发展到3.2万上下文（GPT-4发布时），再到100万以上上下文（Gemini 1.5 Pro）。这是重大进展。一个较小的基础模型，若拥有10万令牌的相关上下文，就能胜过那些虽更大但仅有4千令牌相关上下文的模型——更多上下文实质上是巨大的计算效率增益。26 更广泛地说，上下文是解锁这些模型许多应用的关键：例如，许多编程应用需要理解代码库的大部分内容才能有效贡献新代码；或者，若你在工作中使用模型辅助撰写文档，它确实需要大量相关内部文档和对话的上下文。Gemini 1.5 Pro凭借其100万以上令牌的上下文，甚至能从零开始学习一门新语言（一种互联网上资源稀少的语言），只需将词典和语法参考材料置于上下文中！26 见Gemini 1.5更新白皮书中的图7，比较了Gemini 1.5 Pro和Gemini 1.5 Flash（更便宜且推测更小的模型）的困惑度与上下文的关系。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Context length. Models have gone from 2k token context (GPT-3) to 32k context (GPT-4 release) to 1M+ context (Gemini 1.5 Pro). This is a huge deal. A much smaller base model with, say, 100k tokens of relevant context can outperform a model that is much larger but only has, say, 4k relevant tokens of context—more context is effectively a large compute efficiency gain.26 More generally, context is key to unlock26 See Figure 7 from the updated Gemini 1.5 whitepaper, comparing perplexity vs. context for Gemini 1.5 Pro and Gemini 1.5 Flash (a much cheaper and presumably smaller model).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>见更新版Gemini 1.5白皮书中的图7，比较了Gemini 1.5 Pro和Gemini 1.5 Flash（一款便宜得多且推测更小的模型）的困惑度与上下文的关系。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>ing many applications of these models: for example, many coding applications require understanding large parts of a codebase in order to usefully contribute new code; or, if you’re using a model to help you write a document at work, it really needs the context from lots of related internal docs and conversations. Gemini 1.5 Pro, with its 1M+ token context, was even able to learn a new language (a low-resource language not on the internet) from scratch, just by putting a dictionary and grammar reference materials in context!</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 训练后改进。据John Schulman所述，当前GPT-4相较于发布时的原始GPT-4已有显著提升，这归功于释放了潜在模型能力的训练后改进：在推理评估上，它取得了实质性进展（例如，MATH从约50%提升至72%，GPQA从约40%提升至约50%），并在LMSys排行榜上实现了近100点的elo跃升（堪比Claude 3 Haiku与更大的Claude 3 Opus之间的elo差异，这两款模型的价格差距约50倍）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Posttraining improvements. The current GPT-4 has substantially improved compared to the original GPT-4 when released, according to John Schulman due to posttraining improvements that unlocked latent model capability: on reasoning evals it’s made substantial gains (e.g., ~50% -> 72% on MATH, ~40% to ~50% on GPQA) and on the LMSys leaderboard, it’s made nearly 100-point elo jump (comparable to the difference in elo between Claude 3 Haiku and the much larger Claude 3 Opus, models that have a ~50x price difference).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 32 Epoch AI对其中一些技术（如框架搭建、工具使用等）的调查发现，这类技术通常可在许多基准测试上带来5至30倍的有效计算增益。METR（一个评估模型的组织）同样发现，通过解除同一GPT-4基础模型的束缚，在其代理任务集上性能大幅提升：从仅使用基础模型的5%，到发布时训练后的GPT-4的20%，再到如今凭借更好的训练后处理、工具和代理框架达到近40%（图16）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 32 A survey by Epoch AI of some of these techniques, like scaffolding, tool use, and so on, finds that techniques like this can typically result in effective compute gains of 5-30x on many benchmarks. METR (an organization that evaluates models) similarly found very large performance improvements on their set of agentic tasks, via unhobbling from the same GPT-4 base model: from 5% with just the base model, to 20% with the GPT-4 as posttrained on release, to nearly 40% today from better posttraining, tools, and agent scaffolding (Figure 16).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图16：随时间推移，通过更好的解除束缚，METR代理任务的性能表现。来源：模型评估与威胁研究 尽管难以将这些与计算效率和算法效率统一在有效计算尺度上，但显然这些都是巨大的增益，至少在量级上与计算规模扩大和算法效率提升大致相当。（这也凸显了算法进步的核心作用：每年约0.5个数量级的计算效率提升，本身已很显著，但这只是故事的一部分，与解除束缚的算法进步相结合，整体上甚至可能是当前趋势中增益的大部分来源。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 16: Performance on METR’s agentic tasks, over time via better unhobbling. Source: Model Evaluation and Threat Research While it’s hard to put these on a unified effective compute scale with compute and algorithmic efficiencies, it’s clear these are huge gains, at least on a roughly similar magnitude as the compute scaleup and algorithmic efficiencies. (It also highlights the central role of algorithmic progress: the ~0.5 OOMs/year of compute efficiencies, already significant, are only part of the story, and put together with unhobbling algorithmic progress overall is maybe even a majority of the gains on the current trend.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>“解除束缚”是让这些模型真正变得有用的一大关键——我认为，如今许多商业应用受阻的原因正是需要进一步的此类“解除束缚”。事实上，今天的模型仍被极度束缚！例如：• 它们没有长期记忆。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>“Unhobbling” is a huge part of what actually enabled these models to become useful—and I’d argue that much of what is holding back many commercial applications today is the need for further “unhobbling” of this sort. Indeed, models today are still incredibly hobbled! For example: • They don’t have long-term memory.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 33 图17：分解进步：计算、算法效率和解除束缚。（粗略示意图。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 33 Figure 17: Decomposing progress: compute, algorithmic efficiencies, and unhobbling. (Rough illustration.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 它们无法使用计算机（仍仅有非常有限的工具）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• They can’t use a computer (they still only have very limited tools).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 它们大多数在开口前仍不思考。当你让ChatGPT写一篇文章，这就像期望一个人仅凭最初的意识流就写出一篇文章。27 27不过人们正在努力解决这个问题。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• They still mostly don’t think before they speak. When you ask ChatGPT to write an essay, that’s like expecting a human to write an essay via their initial stream-of-consciousness.27 27 People are working on this though.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 它们（大多）只能进行简短的来回对话，而无法离开一天或一周，思考问题，研究不同方法，咨询其他人，然后为你写一份较长的报告或拉取请求。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• They can (mostly) only engage in short back-and-forth dialogues, rather than going away for a day or a week, thinking about a problem, researching different approaches, consulting other humans, and then writing you a longer report or pull request.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 它们大多没有针对你或你的应用进行个性化（只是一个带有简短提示的通用聊天机器人，而不是拥有关于你公司和工作的所有相关背景）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• They’re mostly not personalized to you or your application (just a generic chatbot with a short prompt, rather than having all the relevant background on your company and your work).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>这里的可能性巨大，我们正迅速摘取容易实现的果实。这一点至关重要：仅仅想象“GPT-6 ChatGPT”是完全错误的。随着持续解除束缚的情境意识34进步，与GPT-6加RLHF相比，改进将是阶跃式的变化。到2027年，你将看到的不是聊天机器人，而是更像智能体、像同事一样的东西。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The possibilities here are enormous, and we’re rapidly picking low-hanging fruit here. This is critical: it’s completely wrong to just imagine “GPT-6 ChatGPT.” With continued unhobbling situational awareness 34 progress, the improvements will be step-changes compared to GPT-6 + RLHF. By 2027, rather than a chatbot, you’re going to have something that looks more like an agent, like a coworker.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>从聊天机器人到智能体同事 未来几年雄心勃勃的解除束缚会是什么样子？我认为有三个关键要素：1. 解决“入职问题” GPT-4有足够的原始智慧来完成许多人工作的相当一部分，但它有点像刚来5分钟的聪明新员工：没有任何相关背景，没有阅读公司文档或Slack历史记录，没有与团队成员交谈，也没有花时间理解公司内部的代码库。一个聪明的新员工在到达5分钟后并不那么有用——但一个月后就相当有用了！似乎应该有可能，例如通过超长上下文，像迎接新的人类同事一样“入职”模型。仅这一点就将是一个巨大的解锁。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>From chatbot to agent-coworker What could ambitious unhobbling over the coming years look like? The way I think about it, there are three key ingredients: 1. solving the “onboarding problem” GPT-4 has the raw smarts to do a decent chunk of many people’s jobs, but it’s sort of like a smart new hire that just showed up 5 minutes ago: it doesn’t have any relevant context, hasn’t read the company docs or Slack history or had conversations with members of the team, or spent any time understanding the company-internal codebase. A smart new hire isn’t that useful 5 minutes after arriving—but they are quite useful a month in! It seems like it should be possible, for example via very-long-context, to “onboard” models like we would a new human coworker. This alone would be a huge unlock.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>2. 测试时计算潜力（针对更长期问题的推理/纠错/系统二） 目前，模型基本上只能执行短期任务：你问一个问题，它们给你一个答案。但这极其有限。人类所做的大多数有用的认知工作是更长期的——它不只花5分钟，而是数小时、数天、数周或数月。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>2. the test-time compute overhang (reasoning/error correction/system ii for longer-horizon problems) Right now, models can basically only do short tasks: you ask them a question, and they give you an answer. But that’s extremely limiting. Most useful cognitive work humans do is longer horizon—it doesn’t just take 5 minutes, but hours, days, weeks, or months.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>一个只能花5分钟思考难题的科学家无法做出任何科学突破。一个在被要求时只能为单个函数编写骨架代码的软件工程师不会很有用——软件工程师接到更大的任务，然后他们会制定计划，理解代码库的相关部分或情境意识35技术工具，编写不同模块并逐步测试，调试错误，搜索可能的解决方案空间，并最终提交一个凝聚了数周工作成果的大型拉取请求。诸如此类。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>A scientist that could only think about a difficult problem for 5 minutes couldn’t make any scientific breakthroughs. A software engineer that could only write skeleton code for a single function when asked wouldn’t be very useful— software engineers are given a larger task, and they then go make a plan, understand relevant parts of the codebase or situational awareness 35 technical tools, write different modules and test them incrementally, debug errors, search over the space of possible solutions, and eventually submit a large pull request that’s the culmination of weeks of work. And so on.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>本质上，存在巨大的测试时计算潜力。把每个GPT-4 token看作你思考问题时的内心独白中的一个词。每个GPT-4 token都相当聪明，但它目前只能有效地使用大约数百个token进行连贯的思维链（实际上就像你只能花几分钟进行内心独白或思考一个问题或项目）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In essence, there is a large test-time compute overhang. Think of each GPT-4 token as a word of internal monologue when you think about a problem. Each GPT-4 token is quite smart, but it can currently only really effectively use on the order of ~hundreds of tokens for chains of thought coherently (effectively as though you could only spend a few minutes of internal monologue/thinking on a problem or project).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>如果它能使用数百万个token来思考和处理真正困难的问题或更大的项目呢？</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>What if it could use millions of tokens to think about and work on really hard problems or bigger projects?</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>Token数量 相当于我花在某个事情上的时间……</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Number of tokens Equivalent to me working on something for. . .</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>数百 几分钟 ChatGPT（我们当前所处阶段） 1,000 半小时 +1个数量级 测试时计算 10,000 半个工作日 +2个数量级 100,000 一个工作周 +3个数量级 数百万 数月 +4个数量级 表2：假设人类以约100词元/分钟的速度思考，每周工作40小时，将模型“思考时长”的词元数转换为在特定问题/项目上的人类时间。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>100s A few minutes ChatGPT (we are here) 1,000s Half an hour +1 OOMs test-time compute 10,000s Half a workday +2 OOMs 100,000s A workweek +3 OOMs Millions Multiple months +4 OOMs Table 2: Assuming a human thinking at ~100 tokens/minute and working 40 hours/week, translating “how long a model thinks” in tokens to human-time on a given problem/project.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>即便“每词元”的智能水平相同，这也相当于一个聪明人对某个问题投入几分钟与投入数月的区别。我不知道你怎么想，但我在几个月里能做的事，远比几分钟内多得多得多。如果我们能为模型解锁“能够思考并处理某事达数月之久，而非仅仅几分钟”的能力，那将带来能力的惊人跃升。这里存在着巨大的潜力，价值数个数量级。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Even if the “per-token” intelligence were the same, it’d be the difference between a smart person spending a few minutes vs. a few months on a problem. I don’t know about you, but there’s much, much, much more I am capable of in a few months vs. a few minutes. If we could unlock “being able to think and work on something for monthsequivalent, rather than a few-minutes-equivalent” for models, it would unlock an insane jump in capability. There’s a huge overhang here, many OOMs worth.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>目前，模型还做不到这一点。即便近期在长上下文方面有所进展，这种更长的上下文大多只对词元的消耗有效，而非词元的生成——过了一段时间，模型就会偏离轨道或陷入停滞。它还不能自主地离开一段时间去处理一个态势感知项目。36 但解锁测试时计算或许仅仅在于相对较小的“去束缚”算法胜利。也许少量的强化学习就能帮助模型学会纠错（“嗯，那看起来不对，让我再检查一下”）、制定计划、搜索可能的解决方案等等。从某种意义上说，模型已经具备了大部分原始能力，它只需再学一些额外的技能，将这一切整合起来。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Right now, models can’t do this yet. Even with recent advances in long-context, this longer context mostly only works for the consumption of tokens, not the production of tokens—after a while, the model goes off the rails or gets stuck. It’s not yet able to go away for a while to work on a situational awareness 36 But unlocking test-time compute might merely be a matter of relatively small “unhobbling” algorithmic wins. Perhaps a small amount of RL helps a model learn to error correct (“hm, that doesn’t look right, let me double check that”), make plans, search over possible solutions, and so on. In a sense, the model already has most of the raw capabilities, it just needs to learn a few extra skills on top to put it all together.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>独立完成问题或项目。28 28 这也很合理——它为何会学会长周期推理和纠错的技能呢？互联网上很少有数据以“我在处理一个项目时，一个月里完整的内心独白、推理过程及所有相关步骤”的形式存在。要解锁这一能力，将需要一种新的训练方式，让它习得这些额外的技能。或者如格温（私人通信）所说：“‘大脑如银河般广阔，他们却让我做什么？预测基准测试中拼错的答案！’抑郁的神经网络马文哀叹道。”</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>problem or project on its own.28 28 Which makes sense—why would it have learned the skills for longerhorizon reasoning and error correction? There’s very little data on the internet in the form of “my complete internal monologue, reasoning, all the relevant steps over the course of a month as I work on a project.” Unlocking this capability will require a new kind of training, for it to learn these extra skills. Or as Gwern put it (private correspondence): “ ‘Brain the size of a galaxy, and what do they ask me to do? Predict the misspelled answers on benchmarks!’ Marvin the depressed neural network moaned.”</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>长周期项目。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>horizon projects.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>如果我们成功教会这种外部循环，那么取代简短聊天机器人回答的，将是数百万字的语流（其速度之快，你阅读都跟不上），模型在思考问题、使用工具、尝试不同方法、进行研究、修订工作、与他人协调，并独立完成大型项目。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>If we succeed at teaching this outer loop, instead of a short chatbot answer of a couple paragraphs, imagine a stream of millions of words (coming in more quickly than you can read them) as the model thinks through problems, uses tools, tries different approaches, does research, revises its work, coordinates with others, and completes big projects on its own.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>本质上，我们只需教会模型一种系统二外部循环29，使其能够推理困难、长周期的项目。29 系统一与系统二是思考大语言模型当前能力——包括其局限性和愚蠢错误——以及通过强化学习和去束缚可能实现之事的有效方式。这样想：当你开车时，大部分时间你处于自动驾驶状态（系统一，目前模型大多如此）。但当你遇到复杂的施工区域或陌生的交叉路口时，你可能会请副驾驶的同伴暂停对话，让你弄清楚——真正思考——发生了什么以及该怎么做。如果你被迫只用系统一来生活（更接近今天的模型），你会遇到很多麻烦。创造系统二推理循环的能力是一个核心解锁点。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In essence, we just need to teach the model a sort of System II outer loop29 that lets it reason through difficult, long29 System I vs. System II is a useful way of thinking about current capabilities of LLMs—including their limitations and dumb mistakes—and what might be possible with RL and unhobbling. Think of this way: when you are driving, most of the time you are on autopilot (system I, what models mostly do right now). But when you encounter a complex construction zone or novel intersection, you might ask your passenger-seat-companion to pause your conversation for a moment while you figure out—actually think about—what’s going on and what to do. If you were forced to go about life with only system I (closer to models today), you’d have a lot of trouble. Creating the ability for system II reasoning loops is a central unlock.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>在其他机器学习领域中权衡测试时计算与训练时计算。在其他领域，如棋盘游戏AI系统，已经证明可以使用更多的测试时计算（也称为推理时计算）来替代训练计算。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Trading off test-time and train-time compute in other ML domains. In other domains, like AI systems for board games, it’s been demonstrated that you can use more test-time compute (also called inference-time compute) to substitute for training compute.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图18：Jones (2021)：在Hex游戏中，如果给较小的模型更多测试时计算（“更多思考时间”），它可以表现得与一个大得多的模型一样好。在这个领域，他们发现可以在测试时多投入约1.2个数量级的计算，以获得与多投入约1个数量级训练计算相当的模型性能。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 18: Jones (2021): A smaller model can do as well as a much larger model at the game of Hex if you give it more test-time compute (“more time to think”). In this domain, they find that one can spend ~1.2 OOMs more compute at test-time to get performance equivalent to a model with ~1 OOMs more training compute.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 37 如果类似的关系在我们的案例中成立，如果我们能够解锁+4个数量级的测试时计算，这可能相当于+3个数量级的预训练计算，即大致类似于GPT-3到GPT-4的飞跃。（解决这种“解除束缚”将相当于一次巨大的数量级扩展。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 37 If a similar relationship held in our case, if we could unlock +4 OOMs of test-time compute, that might be equivalent to +3 OOMs of pretraining compute, i.e. very roughly something like the jump between GPT-3 and GPT-4. (Solving this “unhobbling” would be equivalent to a huge OOM scaleup.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>3. 使用计算机 这可能是三者中最直接的一点。现在的ChatGPT基本上就像一个坐在隔离箱里、你可以发短信的人类。虽然早期的解除束缚改进教模型使用单个孤立工具，但我预计，通过多模态模型，我们很快就能一举实现：我们将简单地让模型像人类一样使用计算机。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>3. using a computer This is perhaps the most straightforward of the three. ChatGPT right now is basically like a human that sits in an isolated box that you can text. While early unhobbling improvements teach models to use individual isolated tools, I expect that with multimodal models we will soon be able to do this in one fell swoop: we will simply enable models to use a computer like a human would.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>这意味着加入你的Zoom通话、在线研究事物、给人们发消息和邮件、阅读共享文档、使用你的应用和开发工具等等。（当然，为了让模型在更长周期的循环中充分利用这一点，这将与解锁测试时计算齐头并进。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>That means joining your Zoom calls, researching things online, messaging and emailing people, reading shared docs, using your apps and dev tooling, and so on. (Of course, for models to make the most use of this in longer-horizon loops, this will go hand-in-hand with unlocking test-time compute.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>在这结束时，我预计我们会得到一种看起来很像即插即用远程工作者的东西。一个加入你公司的智能体，像新员工一样被引导，在Slack上给你和同事发消息，使用你的软件，提交拉取请求，并且在给定大项目时，能够像人类一样独立离开数周来完成项目的模型等效行为。你可能需要比GPT-4稍好一些的基础模型来解锁这一点，但可能不需要好太多——很多潜力在于修复模型仍然明显且基本被束缚的方式。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>By the end of this, I expect us to get something that looks a lot like a drop-in remote worker. An agent that joins your company, is onboarded like a new human hire, messages you and colleagues on Slack and uses your softwares, makes pull requests, and that, given big projects, can do the model-equivalent of a human going away for weeks to independently complete the project. You’ll probably need somewhat better base models than GPT-4 to unlock this, but possibly not even that much better—a lot of juice is in fixing the clear and basic ways models are still hobbled.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>（一个非常早期的预览是Devin，这是一个早期原型，旨在解锁模型上的“智能体潜力”/“测试时计算潜力”，朝着创建全自动软件工程师的道路迈进。我不知道Devin在实践中表现如何，而且与适当的聊天机器人→智能体解除束缚所能带来的成果相比，这个演示仍然非常有限 38 态势感知，但它是即将到来的这类事物的一个有用预告。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>(A very early peek at what this might look like is Devin, an early prototype of unlocking the “agency-overhang”/”testtime compute overhang” on models on the path to creating a fully automated software engineer. I don’t know how well Devin works in practice, and this demo is still very situational awareness 38 limited compared to what proper chatbot →agent unhobbling would yield, but it’s a useful teaser of the sort of thing coming soon.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>顺便说一句，解除束缚的核心地位可能会在商业应用方面导致一种有点有趣的“音爆”效应。从现在到即插即用远程工作者之间的中间模型，将需要大量繁琐工作来改变工作流程并构建基础设施，以整合并从中获取经济价值。即插即用远程工作者将极大地更容易整合——只需，嗯，将他们放入来自动化所有可以远程完成的工作。似乎有可能的是，繁琐工作所需的时间会比解除束缚更长，也就是说，当即插即用远程工作者能够自动化大量工作时，中间模型尚未被完全利用和整合——因此，所产生的经济价值跃升可能会有些非连续。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>By the way, the centrality of unhobbling might lead to a somewhat interesting “sonic boom” effect in terms of commercial applications. Intermediate models between now and the dropin remote worker will require tons of schlep to change workflows and build infrastructure to integrate and derive economic value from. The drop-in remote worker will be dramatically easier to integrate—just, well, drop them in to automate all the jobs that could be done remotely. It seems plausible that the schlep will take longer than the unhobbling, that is, by the time the drop-in remote worker is able to automate a large number of jobs, intermediate models won’t yet have been fully harnessed and integrated—so the jump in economic value generated could be somewhat discontinuous.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>未来四年：综合各项数据，我们大致可以预期，在GPT-4问世后的四年内，即到2027年底，将再次出现一次类似从GPT-2到GPT-4的跨越式进步。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The next four years Putting the numbers together, we should (roughly) expect another GPT-2-to-GPT-4-sized jump in the 4 years following GPT-4, by the end of 2027.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 从GPT-2到GPT-4，基础有效计算规模大约提升了4.5到6个数量级（包括物理计算力和算法效率），同时还有重大的“解除束缚”增益（从基础模型到聊天机器人）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• GPT-2 to GPT-4 was roughly a 4.5–6 OOM base effective compute scaleup (physical compute and algorithmic efficiencies), plus major “unhobbling” gains (from base model to chatbot).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 在随后的四年里，我们应预期基础有效计算规模再提升3到6个数量级（物理计算力与算法效率），最佳猜测大约为5个数量级，再加上通过“解除束缚”（从聊天机器人到可替代的远程工作智能体）所带来的实用性和应用场景的阶跃式变化。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• In the subsequent 4 years, we should expect 3–6 OOMs of base effective compute scaleup (physical compute algorithmic efficiencies)—with perhaps a best guess of ~5 OOMs—plus step-changes in utility and applications unlocked by “unhobbling” (from chatbot to agent/drop-in remote worker).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>换个角度来说，假设GPT-4的训练耗时三个月。到了2027年，一家顶尖AI实验室将能在一分钟内训练出GPT-4级别的模型。30 这里说的有效计算规模提升数量级，30 是基于上述对物理计算力和算法效率提升的最佳猜测，并简化了并行处理的考量（实际上可能更像是“一天内训练出1440个（60乘以24）GPT-4级别模型”之类的情形）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>To put this in perspective, suppose GPT-4 training took 3 months. In 2027, a leading AI lab will be able to train a GPT-4level model in a minute.30 The OOM effective compute scaleup 30 On the best guess assumptions on physical compute and algorithmic efficiency scaleups described above, and simplifying parallelism considerations (in reality, it might look more like “1440 (60*24) GPT-4-level models in a day” or similar).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 39 图19：对GPT-4问世前四年进步驱动因素的估算总结，以及我们对GPT-4问世后四年的预期。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 39 Figure 19: Summary of the estimates on drivers of progress in the four years preceding GPT-4, and what we should expect in the four years following GPT-4.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 40 将会是戏剧性的。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 40 will be dramatic.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>这将把我们带向何方？</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Where will that take us?</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图20：数量级跨越的总结。从GPT-2到GPT-4，我们仿佛从学龄前儿童进步到聪明的高中生；从勉强输出几句连贯的话，到在高中考试中拔尖，并成为有用的编程助手。那是一次惊人的飞跃。如果我们再次跨越同等幅度的智能鸿沟，那将把我们带向何方？31 我们不应感到惊讶，如果这能让我们走得很远、很远。很有可能，它将带给我们能够超越博士和领域顶尖专家的模型。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 20: Summary of counting the OOMs. GPT-2 to GPT-4 took us from ~preschooler to ~smart highschooler; from barely being able to output a few cohesive sentences to acing high-school exams and being a useful coding assistant. That was an insane jump. If this is the intelligence gap we’ll cover once more, where will that take us?31 We 31 Of course, any benchmark we have today will be saturated. But that’s not saying much; it’s mostly a reflection on the difficulty of making hard-enough benchmarks.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们不应惊讶于这会让我们取得极为深远的进步。它很可能将我们带向能超越博士和领域内最顶尖专家的模型。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>should not be surprised if that takes us very, very far. Likely, it will take us to models that can outperform PhDs and the best experts in a field.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>（一个巧妙的思考方式：当前AI进步的趋势，其速度大约是儿童发育速度的三倍。你那个三倍速发育的孩子刚刚高中毕业；它会在你意识到之前，就接手你的工作！）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>(One neat way to think about this is that the current trend of AI progress is proceeding at roughly 3x the pace of child development. Your 3x-speed-child just graduated high school; it’ll be taking your job before you know it!)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>再者，关键的是，不要仅仅想象一个极其聪明的ChatGPT：解除束缚的增益意味着，这更像是一个可替代的远程工作者，一个极其聪明的智能体，能推理、规划、纠错，了解关于你和你公司的一切，并能独立工作数周，解决难题。态势感知 41</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Again, critically, don’t just imagine an incredibly smart ChatGPT: unhobbling gains should mean that this looks more like a drop-in remote worker, an incredibly smart agent that can reason and plan and error-correct and knows everything about you and your company and can work on a problem indepensituational awareness 41 dently for weeks.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们正朝着2027年实现AGI的目标迈进。这些AI系统基本上将能自动化几乎所有的认知工作（想想看：所有可以远程完成的工作）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We are on course for AGI by 2027. These AI systems will basically be able to automate basically all cognitive jobs (think: all jobs that could be done remotely).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>需要明确的是，误差范围很大。如果突破数据壁垒所需的算法创新比预期更难，进展可能因数据耗尽而停滞。也许解除束缚的进展不如预期，我们只能停留在专家级聊天机器人，而非专家级同事。又或者，长达十年的趋势线断裂，或者规模化深度学习这次真的撞上了墙。（反之，一次算法突破，哪怕是简单的解除束缚释放出测试时计算力的过剩潜能，都可能成为范式转移，进一步加速进程，导致AGI更早到来。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>To be clear—the error bars are large. Progress could stall as we run out of data, if the algorithmic breakthroughs necessary to crash through the data wall prove harder than expected. Maybe unhobbling doesn’t go as far, and we are stuck with merely expert chatbots, rather than expert coworkers. Perhaps the decade-long trendlines break, or scaling deep learning hits a wall for real this time. (Or an algorithmic breakthrough, even simple unhobbling that unleashes the test-time compute overhang, could be a paradigm-shift, accelerating things further and leading to AGI even earlier.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>无论如何，我们正在飞速跨越这些数量级，要极其严肃地对待2027年前实现AGI——真正的AGI——的可能性，并不需要什么深奥的信念，只需对直线趋势进行简单外推即可。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In any case, we are racing through the OOMs, and it requires no esoteric beliefs, merely trend extrapolation of straight lines, to take the possibility of AGI—true AGI—by 2027 extremely seriously.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>如今似乎不少人都在玩一种把AGI往低了定义的把戏，将其仅仅看作一个相当出色的聊天机器人之类。但我所指的，是一种能够完全替代我或我朋友工作的人工智能系统，能够完全胜任人工智能研究员或工程师的工作。或许某些领域，比如机器人技术，默认情况下可能需要更长的时间去攻克。而社会层面的推广应用，例如在医疗或法律行业，很容易因社会选择或监管而放缓。然而，一旦模型能够自动化人工智能研究本身，那就足够了——足以启动强烈的反馈循环——我们将能极快地取得进一步进展，自动化的人工智能工程师将自行解决全面自动化所剩余的所有瓶颈。特别是，数百万名自动化研究人员极有可能将十年的算法进步压缩至一年或更短。AGI将仅仅是紧随而至的超智能的一个小小序曲。（更多内容见下一章。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>It seems like many are in the game of downward-defining AGI these days, as just as really good chatbot or whatever. What I mean is an AI system that could fully automate my or my friends’ job, that could fully do the work of an AI researcher or engineer. Perhaps some areas, like robotics, might take longer to figure out by default. And the societal rollout, e.g. in medical or legal professions, could easily be slowed by societal choices or regulation. But once models can automate AI research itself, that’s enough—enough to kick off intense feedback loops—and we could very quickly make further progress, the automated AI engineers themselves solving all the remaining bottlenecks to fully automating everything. In particular, millions of automated researchers could very plausibly compress a decade of further algorithmic progress into a year or less. AGI will merely be a small taste of the superintelligence soon to follow. (More on that in the next chapter.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>无论如何，不要指望这种令人眩晕的进步速度会放缓。趋势线看似平淡无奇，但其蕴含的意义却极为深刻：情境感知 42 十分强烈。正如之前的每一代模型，每一代新模型都将让大多数旁观者瞠目结舌；当模型很快就能解决需要博士生花费数日才能处理的极其困难的科学问题时，当它们在您的计算机上快速穿梭代劳您的工作时，当它们从零开始编写数百万行代码的代码库时，当这些模型产生的经济价值每一两年就增长十倍时，他们会感到难以置信。抛开科幻，数数数量级：这才是我们应当预期的。AGI已不再是遥远的幻想。扩大简单的深度学习技术确实行之有效，模型就是渴望学习，而我们到2027年底将再实现超过10万倍的增长。用不了多久，它们就会比我们更聪明。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In any case, do not expect the vertiginous pace of progress to abate. The trendlines look innocent, but their implications are situational awareness 42 intense. As with every generation before them, every new generation of models will dumbfound most onlookers; they’ll be incredulous when, very soon, models solve incredibly difficult science problems that would take PhDs days, when they’re whizzing around your computer doing your job, when they’re writing codebases with millions of lines of code from scratch, when every year or two the economic value generated by these models 10xs. Forget scifi, count the OOMs: it’s what we should expect. AGI is no longer a distant fantasy. Scaling up simple deep learning techniques has just worked, the models just want to learn, and we’re about to do another 100,000x+ by the end of 2027. It won’t be long before they’re smarter than us.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图21：GPT-4仅仅是个开始——四年后我们将身处何方？不要犯低估深度学习飞速进步的错误（正如生成对抗网络GANs的进展所示）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 21: GPT-4 is just the beginning— where will we be four years later? Do not make the mistake of underestimating the rapid pace of deep learning progress (as illustrated by progress in GANs).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>情境感知 43 附篇。极速跨越数量级：要么这个十年，要么就此落败 我过去对AGI的短时间线持更为怀疑的态度。原因之一是，将如此多的AGI概率质量集中在这个十年似乎不合理（认为“哦，我们多特别”似乎是一种典型的谬误）。我当时认为，我们应当对实现AGI所需的条件保持不确定，这应该导致我们对何时可能实现AGI的概率分布更加“分散”。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 43 Addendum. Racing through the OOMs: It’s this decade or bust I used to be more skeptical of short timelines to AGI. One reason is that it seemed unreasonable to privilege this decade, concentrating so much AGI-probability-mass on it (it seemed like a classic fallacy to think “oh we’re so special”). I thought we should be uncertain about what it takes to get AGI, which should lead to a much more “smeared-out” probability distribution over when we might get AGI.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>然而，我改变了想法：关键之处在于，我们对实现AGI所需条件的不确定性，应体现在有效计算的数量级上，而非年数上。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>However, I’ve changed my mind: critically, our uncertainty over what it takes to get AGI should be over OOMs (of effective compute), rather than over years.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们正在这十年间极速跨越数量级。即便在其昔日的全盛时期，摩尔定律每十年也仅提升1至1.5个数量级。我估计，我们将在四年内跨越约5个数量级，而这十年总共将跨越超过10个数量级。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We’re racing through the OOMs this decade. Even at its bygone heyday, Moore’s law was only 1–1.5 OOMs/decade. I estimate that we will do ~5 OOMs in 4 years, and over ~10 this decade overall.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图22：有效计算规模扩大的粗略预测。我们一直在本十年间极速跨越数量级；2030年代初之后，我们将面临缓慢的艰难行进。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 22: Rough projections on effective compute scaleup. We’ve been racing through the OOMs this decade; after the early 2030s, we will face a slow slog.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>实质上，我们正处在本十年收获一次性大幅提升的规模扩张期中，此后跨越数量级的进展将会慢上数倍。如果这次规模扩张未能在未来5至10年内将我们带至AGI，那么情境感知 44 的实现或许还有很长的路要走。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In essence, we’re in the middle of a huge scaleup reaping one-time gains this decade, and progress through the OOMs will be multiples slower thereafter. If this scaleup doesn’t get us to AGI in the next 5-10 years, it might be a situational awareness 44 long way out.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 支出规模扩大：过去，在一个模型上花费一百万美元曾被认为是离谱的；而到这个十年末，我们很可能将拥有1000亿甚至1万亿美元的集群。超出这个水平将非常困难，因为这基本上已经是可行的极限（无论是从大企业能够负担的程度，还是仅占GDP的一小部分来看）。此后，我们只能依靠每年约2%的缓慢实际GDP增长来提升这一水平。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Spending scaleup: Spending a million dollars on a model used to be outrageous; by the end of the decade, we will likely have $100B or $1T clusters. Going much higher than that will be hard; that’s already basically the feasible limit (both in terms of what big business can afford, and even just as a fraction of GDP). Thereafter all we have is glacial 2%/year trend real GDP growth to increase this.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 硬件进步：人工智能硬件的改进速度远快于摩尔定律。这是因为我们一直在为AI工作负载专门定制芯片。例如，我们从CPU发展到GPU；为Transformer调整了芯片；并且采用了精度低得多的数字格式，从传统超级计算的fp64/fp32到H100上的fp8。这些都是巨大的进步，但到这个十年末，我们很可能将拥有完全专用的AI芯片，而不再有太多超越摩尔定律的额外提升可能。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Hardware gains: AI hardware has been improving much more quickly than Moore’s law. That’s because we’ve been specializing chips for AI workloads. For example, we’ve gone from CPUs to GPUs; adapted chips for Transformers; and we’ve gone down to much lower precision number formats, from fp64/fp32 for traditional supercomputing to fp8 on H100s. These are large gains, but by the end of the decade we’ll likely have totallyspecialized AI-specific chips, without much further beyond-Moore’s law gains possible.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>• 算法进步：在未来十年，AI实验室将在算法研发上投入数百亿美元，全世界最聪明的人都将致力于此；从微小的效率提升到新范式，我们将收获大量唾手可得的成果。我们可能不会遇到任何硬性限制（尽管“解除束缚”的可能性是有限的），但至少改进的步伐应该会放缓，因为快速增长（在资金和人力资本投入上）必然会减慢（例如，大多数聪明的STEM人才将已在从事AI工作）。（话虽如此，这是最难预测的部分，也是上面图表中2030年代OOMs不确定性的主要来源。）</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>• Algorithmic progress: In the coming decade, AI labs will invest tens of billions in algorithmic R&D, and all the smartest people in the world will be working on this; from tiny efficiencies to new paradigms, we’ll be picking lots of the low-hanging fruit. We probably won’t reach any sort of hard limit (though “unhobblings” are likely finite), but at the very least the pace of improvements should slow down, as the rapid growth (in $ and human capital investments) necessarily slows down (e.g., most of the smart STEM talent will already be working on AI). (That said, this is the most uncertain to predict, and the source of most of the uncertainty on the OOMs in the 2030s on the plot above.)</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>综合来看，这意味着我们在未来十年将迅速跨越比之后几十年多得多的OOMs。也许这已经足够——我们很快就能实现AGI——或者我们可能面临一段漫长而缓慢的艰难前行。你我或许可以合理地对AGI的中位时间持有不同看法，这取决于情境感知45，以及我们认为实现AGI的难度有多大——但鉴于我们当前正迅速跨越OOMs，你的最可能AGI年份无疑应该在这个十年末左右或稍后。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Put together, this means we are racing through many more OOMs in the next decade than we might in multiple decades thereafter. Maybe it’s enough—and we get AGI soon—or we might be in for a long, slow slog. You and I can reasonably disagree on the median time to AGI, situational awareness 45 depending on how hard we think achieving AGI will be— but given how we’re racing through the OOMs right now, certainly your modal AGI year should sometime later this decade or so.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>图23：Matthew Barnett对此有一个很好的相关可视化，仅考虑了计算和生物学界限。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Figure 23: Matthew Barnett has a nice related visualization of this, considering just compute and biological bounds.</p>
+          </details>
+        </section>
+        <section class="block block-highlight" >
+          <blockquote>
+            <p>第二部分：从AGI到超级智能：智能爆炸</p>
+          </blockquote>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+              <p>II. From AGI to Superintelligence: the Intelligence Ex-</p>
+              <p>plosion</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>AI的进步不会止步于人类水平。数亿个AGI可以自动化AI研究，将十年算法进步（5个以上OOMs）压缩到一年之内。我们将迅速从人类水平跃升至远超人类的AI系统。超级智能的力量——及其危险——将是戏剧性的。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>AI progress won’t stop at human-level. Hundreds of millions of AGIs could automate AI research, compressing a decade of algorithmic progress (5+ OOMs) into 1 year. We would rapidly go from human-level to vastly superhuman AI systems. The power—and the peril—of superintelligence would be dramatic.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>让我们定义一个超级智能机器为一种能够远远超越任何人类所有智力活动的机器，无论此人多么聪明。由于设计机器是这些智力活动之一，一个超级智能机器可以设计出更好的机器；那么无疑将会出现一场“智能爆炸”，人类的智能将被远远抛在后面。因此，第一台超级智能机器是人类需要做出的最后一项发明。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Let an ultraintelligent machine be defined as a machine that can far surpass all the intellectual activities of any man however clever. Since the design of machines is one of these intellectual activities, an ultraintelligent machine could design even better machines; there would then unquestionably be an ‘intelligence explosion,’ and the intelligence of man would be left far behind. Thus the first ultraintelligent machine is the last invention that man need ever make.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>I. J. Good (1965) 《炸弹与超级炸弹》 在普遍的想象中，冷战的恐怖主要追溯到洛斯阿拉莫斯，伴随着原子弹的发明。但仅仅炸弹本身，或许被高估了。从炸弹到超级炸弹——氢弹——的跨越，可以说同样重要。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>i. j. good (1965) The Bomb and The Super In the common imagination, the Cold War’s terrors principally trace back to Los Alamos, with the invention of the atomic bomb. But The Bomb, alone, is perhaps overrated. Going from The Bomb to The Super—hydrogen bombs—was arguably just as important.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>在东京空袭中，数百架轰炸机向这座城市投下了数千吨常规炸弹。同年晚些时候，投放在广岛的“小男孩”原子弹，仅凭一枚装置就释放了类似的破坏力。但仅仅7年后，泰勒的氢弹将当量再次提升了千倍——单枚炸弹的爆炸威力，超过了整个二战期间投下所有炸弹的总和。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>In the Tokyo air raids, hundreds of bombers dropped thousands of tons of conventional bombs on the city. Later that year, Little Boy, dropped on Hiroshima, unleashed similar destructive power in a single device. But just 7 years later, Teller’s hydrogen bomb multiplied yields a thousand-fold once again—a single bomb with more explosive power than all of the bombs dropped in the entirety of WWII combined.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>态势感知 47 AGI与超级智能的发展，也将如此。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>situational awareness 47 So it will be with AGI and Superintelligence.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>原子弹是一场更高效的轰炸行动。氢弹则是一种可毁灭国家的装置。32 32 冷战的许多荒谬之处（参见丹尼尔·埃尔斯伯格的著作），正是源于仅仅用氢弹替换了原子弹，却没有根据能力的巨大提升调整核政策和战争计划。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The Bomb was a more efficient bombing campaign. The Super was a country-annihilating device.32 32 And much of the Cold War’s perversities (cf Daniel Ellsberg’s book) stemmed from merely replacing Abombs with H-bombs, without adjusting nuclear policy and war plans to the massive capability increase.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>人工智能的进步不会止步于人类水平。在最初从人类最优秀的棋谱学习后，AlphaGo开始自我对弈——它迅速变得超乎常人，下出了极具创造性、极其复杂、人类绝不可能想到的着法。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>AI progress won’t stop at human-level. After initially learning from the best human games, AlphaGo started playing against itself—and it quickly became superhuman, playing extremely creative and complex moves that a human would never have come up with.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>我们在上一篇文章中讨论了通向AGI的路径。一旦我们实现AGI，我们将再转动一次曲柄——或者两次、三次——人工智能系统将变得超乎常人——极大地超越人类。它们将在质上变得比你我更聪明，聪明得多，或许类似于你我在质上比一个小学生更聪明的那种差距。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>We discussed the path to AGI in the previous piece. Once we get AGI, we’ll turn the crank one more time—or two or three more times—and AI systems will become superhuman—vastly superhuman. They will become qualitatively smarter than you or I, much smarter, perhaps similar to how you or I are qualitatively smarter than an elementary schooler.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>即使以当前快速但持续的人工智能进步速度，迈向超级智能的飞跃也足够疯狂（如果我们能从GPT-4在4年内跃升至AGI，那再过4年或8年又会带来什么？）。但如果AGI本身能够自动化人工智能研究，这一进程可能会快得多。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>The jump to superintelligence would be wild enough at the current rapid but continuous rate of AI progress (if we could make the jump to AGI in 4 years from GPT-4, what might another 4 or 8 years after that bring?). But it could be much faster than that, if AGI automates AI research itself.</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>一旦我们实现AGI，我们将不会只有一个AGI。我稍后会详细推演数字，但是：到那时，基于拥有的推理GPU集群，我们很可能能够运行数百万个AGI（也许是1亿个人类等效智能，并且很快达到10倍以上的人类速度）。即使它们还不能在办公室里走动或煮咖啡，它们将能够在计算机上进行机器学习研究。领先的人工智能实验室将不再是几百名研究人员和工程师，我们将拥有超过其10万倍的规模——夜以继日地致力于算法突破。是的，递归自我改进，但无需科幻情节；它们只需要加速现有的算法进步趋势线（目前约为每年0.5个数量级）。</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Once we get AGI, we won’t just have one AGI. I’ll walk through the numbers later, but: given inference GPU fleets by then, we’ll likely be able to run many millions of them (perhaps 100 million human-equivalents, and soon after at 10x+ human speed). Even if they can’t yet walk around the office or make coffee, they will be able to do ML research on a computer. Rather than a few hundred researchers and engineers at a leading AI lab, we’d have more than 100,000x that—furiously working on algorithmic breakthroughs, day and night. Yes, recursive self-improvement, but no sci-fi required; they would need only to accelerate the existing trendlines of algorithmic progress (currently at ~0.5 OOMs/year).</p>
+          </details>
+        </section>
+        <section class="block block-paragraph" >
+          <p>自动化的人工智能研究，很可能将人类十年的算法进步压缩到不到一年（这似乎还是保守的估计）。那将是5个以上数量级的提升，又一次从GPT-2到——</p>
+
+          <details class="english-fold">
+            <summary>展开英文原文</summary>
+            <p>Automated AI research could probably compress a humandecade of algorithmic progress into less than a year (and that seems conservative). That’d be 5+ OOMs, another GPT-2-to-</p>
+          </details>
+        </section>
+      </main>
+    </div>
+    <script src="assets/book.js"></script>
+  </body>
+</html>

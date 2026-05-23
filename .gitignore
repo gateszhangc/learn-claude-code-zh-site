@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+pipeline.py
+playwright.config.js
+data/
+templates/
+tests/
+node_modules/
