@@ -294,6 +294,7 @@ def render_home(article_html: str, nav: list[dict[str, str]], meta: dict[str, st
         <a class="brand" href="#top">Learn Claude Code</a>
         <div>
           <a href="#chapters">章节</a>
+          <a href="/ebooks/learn-claude-code-zh.epub" download>电子书</a>
           <a href="{SOURCE_URL}" rel="noopener noreferrer">GitHub 原文</a>
         </div>
       </nav>
@@ -304,6 +305,7 @@ def render_home(article_html: str, nav: list[dict[str, str]], meta: dict[str, st
           <p class="lead">把 shareAI-lab 的中文课程整理成适合连续阅读的静态网页：目录常驻、正文窄栏、代码块和表格保持清晰。</p>
           <div class="hero-actions">
             <a class="primary-action" href="/s01_agent_loop/">从 s01 开始</a>
+            <a href="/ebooks/learn-claude-code-zh.epub" download>下载 EPUB</a>
             <a href="#chapters">浏览 20 章</a>
           </div>
         </div>
@@ -377,6 +379,7 @@ def render_chapter(
         <a class="brand" href="/">Learn Claude Code</a>
         <div>
           <a href="/">总览</a>
+          <a href="/ebooks/learn-claude-code-zh.epub" download>电子书</a>
           <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/{chapter["slug"]}" rel="noopener noreferrer">GitHub 原文</a>
         </div>
       </nav>

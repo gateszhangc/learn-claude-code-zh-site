@@ -3,6 +3,7 @@ FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY index.html /usr/share/nginx/html/index.html
 COPY assets /usr/share/nginx/html/assets
+COPY ebooks /usr/share/nginx/html/ebooks
 COPY s01_agent_loop /usr/share/nginx/html/s01_agent_loop
 COPY s02_tool_use /usr/share/nginx/html/s02_tool_use
 COPY s03_permission /usr/share/nginx/html/s03_permission
