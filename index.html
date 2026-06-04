@@ -1,513 +1,168 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Learn Claude Code：真正的 Agent Harness 工程</title>
-    <meta name="description" content="Learn Claude Code 中文长文阅读站：真正的 Agent Harness 工程。">
-    <link rel="canonical" href="https://learn.codex55.lol/">
-    <link rel="stylesheet" href="assets/styles.css">
-  </head>
-  <body>
-    <header class="site-hero">
-      <nav class="topbar" aria-label="顶部导航">
-        <a class="brand" href="#top">Learn Claude Code</a>
-        <div>
-          <a href="#全部章节">章节</a>
-          <a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/README-zh.md" rel="noopener noreferrer">GitHub 原文</a>
-        </div>
-      </nav>
-
-      <div class="hero-grid" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow">中文阅读站</p>
-          <h1>Learn Claude Code：真正的 Agent Harness 工程</h1>
-          <p class="lead">把 shareAI-lab 的中文 README 整理成适合连续阅读的静态网页：目录常驻、正文窄栏、代码块和表格保持清晰。</p>
-          <div class="hero-actions">
-            <a class="primary-action" href="#agency-来自模型-agent-产品-模型-harness">开始阅读</a>
-            <a href="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/README-zh.md" rel="noopener noreferrer">查看 Markdown</a>
-          </div>
-        </div>
-        <aside class="pattern-panel" aria-label="核心公式">
-          <p>Harness = Tools + Knowledge + Observation + Action Interfaces + Permissions</p>
-          <span>模型做决策，Harness 提供行动空间。</span>
-        </aside>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>埃隆之书中文导读 | The Book of Elon</title>
+  <meta name="description" content="The Book of Elon 中文导读阅读站：按章节整理使命、工程、组织、速度、公司和人类未来等主题。">
+  <link rel="canonical" href="https://elon.codex55.lol/">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="site-hero">
+    <nav class="topbar" aria-label="顶部导航">
+      <a class="brand" href="#top">The Book of Elon</a>
+      <div><a href="#chapters">章节</a><a href="https://www.elonmuskbook.org/free-book-of-elon-musk" rel="noopener noreferrer">免费 PDF</a><a href="https://www.ejorgenson.com/" rel="noopener noreferrer">作者</a></div>
+    </nav>
+    <div class="hero-grid" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow">中文阅读导读</p>
+        <h1>埃隆之书</h1>
+        <p class="lead">把 Eric Jorgenson 编纂的 <em>The Book of Elon</em> 整理成中文阅读地图：先抓住章节结构、核心方法和行动线索，再回到官方免费全文深入阅读。</p>
+        <div class="hero-actions"><a class="primary-action" href="#chapters">开始阅读</a><a href="https://www.elonmuskbook.org/the-book-of-elon-free-online-edition" rel="noopener noreferrer">官方在线版</a></div>
       </div>
-    </header>
-
-    <main class="reader-shell">
-      <aside class="toc" aria-label="文章目录">
-        <p class="toc-title">目录</p>
-        <div class="toc-links"><a href="#agency-来自模型-agent-产品-模型-harness"><span>01</span>Agency 来自模型，Agent 产品 = 模型 + Harness</a>
-<a href="#愿景-用真正的-agent-铺满宇宙"><span>02</span>愿景：用真正的 Agent 铺满宇宙</a>
-<a href="#核心模式"><span>03</span>核心模式</a>
-<a href="#版本说明"><span>04</span>版本说明</a>
-<a href="#范围说明"><span>05</span>范围说明</a>
-<a href="#快速开始"><span>06</span>快速开始</a>
-<a href="#学习路径"><span>07</span>学习路径</a>
-<a href="#全部章节"><span>08</span>全部章节</a>
-<a href="#项目结构"><span>09</span>项目结构</a>
-<a href="#学完之后-从理解到落地"><span>10</span>学完之后 -- 从理解到落地</a>
-<a href="#姊妹教程-从被动临时会话到主动常驻助手"><span>11</span>姊妹教程: 从被动临时会话到主动常驻助手</a>
-<a href="#许可证"><span>12</span>许可证</a></div>
-      </aside>
-
-      <article class="article">
-        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/blob/main/README-zh.md" rel="noopener noreferrer">shareAI-lab/learn-claude-code README-zh.md</a></p>
-        <h1 id="learn-claude-code-真正的-agent-harness-工程">Learn Claude Code -- 真正的 Agent Harness 工程</h1>
-<h2 id="agency-来自模型-agent-产品-模型-harness">Agency 来自模型，Agent 产品 = 模型 + Harness</h2>
-<p>在讨论代码之前，先把一件事说清楚。</p>
-<p><strong>Agency -- 感知、推理、行动的能力 -- 来自模型训练，不是来自外部代码的编排。</strong> 但一个能干活的 agent 产品，需要模型和 harness 缺一不可。模型是驾驶者，harness 是载具。本仓库教你造载具。</p>
-<h3 id="agency-从哪来">Agency 从哪来</h3>
-<p>Agent 的核心是一个神经网络 -- Transformer、RNN、一个被训练出来的函数 -- 经过数十亿次梯度更新，在行动序列数据上学会了感知环境、推理目标、采取行动。Agency 这个东西从来不是外面那层代码赋予的，而是模型在训练中学到的。</p>
-<p>人类就是最好的例子。一个由数百万年进化训练出来的生物神经网络，通过感官感知世界，通过大脑推理，通过身体行动。当 DeepMind、OpenAI 或 Anthropic 说 "agent" 时，他们说的核心都是同一件事：<strong>一个通过训练学会了行动的模型，加上让它能在特定环境中工作的基础设施。</strong></p>
-<p>历史已经写好了铁证：</p>
-<ul>
-<li><strong>2013 -- DeepMind DQN 玩 Atari。</strong> 一个神经网络，只接收原始像素和游戏分数，学会了 7 款 Atari 2600 游戏 -- 超越所有先前算法，在其中 3 款上击败人类专家。到 2015 年，同一架构扩展到 <a href="https://www.nature.com/articles/nature14236" rel="noopener noreferrer">49 款游戏，达到职业人类测试员水平</a>，论文发表在 <em>Nature</em>。没有游戏专属规则。没有决策树。一个模型，从经验中学习。那个模型就是 agent。</li>
-</ul>
-<ul>
-<li><strong>2019 -- OpenAI Five 征服 Dota 2。</strong> 五个神经网络，在 10 个月内与自己对战了 <a href="https://openai.com/index/openai-five-defeats-dota-2-world-champions/" rel="noopener noreferrer">45,000 年的 Dota 2</a>，在旧金山直播赛上 2-0 击败了 <strong>OG</strong> -- TI8 世界冠军。随后的公开竞技场中，AI 在 42,729 场比赛中胜率 99.4%。没有脚本化的策略。没有元编程的团队协调逻辑。模型完全通过自我对弈学会了团队协作、战术和实时适应。</li>
-</ul>
-<ul>
-<li><strong>2019 -- DeepMind AlphaStar 制霸星际争霸 II。</strong> AlphaStar 在闭门赛中 <a href="https://deepmind.google/blog/alphastar-mastering-the-real-time-strategy-game-starcraft-ii/" rel="noopener noreferrer">10-1 击败职业选手</a>，随后在欧洲服务器上达到<a href="https://www.nature.com/articles/d41586-019-03298-6" rel="noopener noreferrer">宗师段位</a> -- 90,000 名玩家中的前 0.15%。一个信息不完全、实时决策、组合动作空间远超国际象棋和围棋的游戏。Agent 是什么？是模型。训练出来的。不是编出来的。</li>
-</ul>
-<ul>
-<li><strong>2019 -- 腾讯绝悟统治王者荣耀。</strong> 腾讯 AI Lab 的 "绝悟" 于 2019 年 8 月 2 日世冠杯半决赛上<a href="https://www.jiemian.com/article/3371171.html" rel="noopener noreferrer">以 5v5 击败 KPL 职业选手</a>。在 1v1 模式下，职业选手 <a href="https://developer.aliyun.com/article/851058" rel="noopener noreferrer">15 场只赢 1 场，最多坚持不到 8 分钟</a>。训练强度：一天等于人类 440 年。到 2021 年，绝悟在全英雄池 BO5 上全面超越 KPL 职业选手水准。没有手工编写的英雄克制表。没有脚本化的阵容编排。一个从零开始通过自我对弈学习整个游戏的模型。</li>
-</ul>
-<ul>
-<li><strong>2024-2025 -- LLM Agent 重塑软件工程。</strong> Claude、GPT、Gemini -- 在人类全部代码和推理上训练的大语言模型 -- 被部署为编程 agent。它们阅读代码库，编写实现，调试故障，团队协作。架构与之前每一个 agent 完全相同：一个训练好的模型，放入一个环境，给予感知和行动的工具。唯一的不同是它们学到的东西的规模和解决任务的通用性。</li>
-</ul>
-<p>每一个里程碑都指向同一个事实：<strong>Agency -- 那个感知、推理、行动的能力 -- 是训练出来的，不是编出来的。</strong> 但每一个 agent 同时也需要一个环境才能工作：Atari 模拟器、Dota 2 客户端、星际争霸 II 引擎、IDE 和终端。模型提供智能，环境提供行动空间。两者合在一起才是一个完整的 agent。</p>
-<h3 id="agent-不是什么">Agent 不是什么</h3>
-<p>"Agent" 这个词已经被一整个提示词水管工产业劫持了。</p>
-<p>拖拽式工作流构建器。无代码 "AI Agent" 平台。提示词链编排库。它们共享同一个幻觉：把 LLM API 调用用 if-else 分支、节点图、硬编码路由逻辑串在一起就算是 "构建 Agent" 了。</p>
-<p>不是的。它们做出来的东西是鲁布·戈德堡机械 -- 一个过度工程化的、脆弱的过程式规则流水线，LLM 被楔在里面当一个美化了的文本补全节点。那不是 Agent。那是一个有着宏大妄想的 shell 脚本。</p>
-<p><strong>提示词水管工式 "Agent" 是不做模型的程序员的意淫。</strong> 他们试图通过堆叠过程式逻辑来暴力模拟智能 -- 庞大的规则树、节点图、链式提示词瀑布流 -- 然后祈祷足够多的胶水代码能涌现出自主行为。不会的。你不可能通过工程手段编码出 agency。Agency 是学出来的，不是编出来的。</p>
-<p>那些系统从诞生之日起就已经死了：脆弱、不可扩展、根本不具备泛化能力。它们是 GOFAI（Good Old-Fashioned AI，经典符号 AI）的现代还魂 -- 几十年前就被学界抛弃的符号规则系统，现在喷了一层 LLM 的漆又登场了。换了个包装，同一条死路。</p>
-<h3 id="心智转换-从-开发-agent-到开发-harness">心智转换：从 "开发 Agent" 到开发 Harness</h3>
-<p>当一个人说 "我在开发 Agent" 时，他只可能是两个意思之一：</p>
-<p><strong>1. 训练模型。</strong> 通过强化学习、微调、RLHF 或其他基于梯度的方法调整权重。收集任务过程数据 -- 真实领域中感知、推理、行动的实际序列 -- 用它们来塑造模型的行为。这是 DeepMind、OpenAI、腾讯 AI Lab、Anthropic 在做的事。这是最本义的 Agent 开发。</p>
-<p><strong>2. 构建 Harness。</strong> 编写代码，为模型提供一个可操作的环境。这是我们大多数人在做的事，也是本仓库的核心。</p>
-<p>Harness 是 agent 在特定领域工作所需要的一切：</p>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>Harness = Tools + Knowledge + Observation + Action Interfaces + Permissions
-
-    Tools:          文件读写、Shell、网络、数据库、浏览器
-    Knowledge:      产品文档、领域资料、API 规范、风格指南
-    Observation:    git diff、错误日志、浏览器状态、传感器数据
-    Action:         CLI 命令、API 调用、UI 交互
-    Permissions:    沙箱隔离、审批流程、信任边界</code></pre></figure>
-<p>模型做决策。Harness 执行。模型做推理。Harness 提供上下文。模型是驾驶者。Harness 是载具。</p>
-<p><strong>编程 agent 的 harness 是它的 IDE、终端和文件系统。</strong> 农业 agent 的 harness 是传感器阵列、灌溉控制和气象数据。酒店 agent 的 harness 是预订系统、客户沟通渠道和设施管理 API。Agent -- 那个智能、那个决策者 -- 永远是模型。Harness 因领域而变。Agent 跨领域泛化。</p>
-<p>这个仓库教你造载具。编程用的载具。但设计模式可以泛化到任何领域：庄园管理、农田运营、酒店运作、工厂制造、物流调度、医疗保健、教育培训、科学研究。只要有一个任务需要被感知、推理和执行 -- agent 就需要一个 harness。</p>
-<h3 id="harness-工程师到底在做什么">Harness 工程师到底在做什么</h3>
-<p>如果你在读这个仓库，你很可能是一名 harness 工程师 -- 这是一个强大的身份。以下是你真正的工作：</p>
-<ul>
-<li><strong>实现工具。</strong> 给 agent 一双手。文件读写、Shell 执行、API 调用、浏览器控制、数据库查询。每个工具都是 agent 在环境中可以采取的一个行动。设计它们时要原子化、可组合、描述清晰。</li>
-</ul>
-<ul>
-<li><strong>策划知识。</strong> 给 agent 领域专长。产品文档、架构决策记录、风格指南、合规要求。按需加载（s07），不要前置塞入。Agent 应该知道有什么可用，然后自己拉取所需。</li>
-</ul>
-<ul>
-<li><strong>管理上下文。</strong> 给 agent 干净的记忆。子 agent 隔离（s06）防止噪声泄露。上下文压缩（s08）防止历史淹没。任务系统（s12）让目标持久化到单次对话之外。</li>
-</ul>
-<ul>
-<li><strong>控制权限。</strong> 给 agent 边界。沙箱化文件访问。对破坏性操作要求审批。在 agent 和外部系统之间实施信任边界。这是安全工程与 harness 工程的交汇点。</li>
-</ul>
-<ul>
-<li><strong>收集任务过程数据。</strong> Agent 在你的 harness 中执行的每一条行动序列都是训练信号。真实部署中的感知-推理-行动轨迹是微调下一代 agent 模型的原材料。你的 harness 不仅服务于 agent -- 它还可以帮助进化 agent。</li>
-</ul>
-<p>你不是在编写智能。你是在构建智能栖居的世界。这个世界的质量 -- agent 能看得多清楚、行动得多精准、可用知识有多丰富 -- 直接决定了智能能多有效地表达自己。</p>
-<p><strong>造好 Harness。Agent 会完成剩下的。</strong></p>
-<h3 id="为什么是-claude-code-harness-工程的大师课">为什么是 Claude Code -- Harness 工程的大师课</h3>
-<p>为什么这个仓库专门拆解 Claude Code？</p>
-<p>因为 Claude Code 是我们所见过的最优雅、最完整的 agent harness 实现。不是因为某个巧妙的技巧，而是因为它 <em>没做</em> 的事：它没有试图成为 agent 本身。它没有强加僵化的工作流。它没有用精心设计的决策树去替模型做判断。它给模型提供了工具、知识、上下文管理和权限边界 -- 然后让开了。</p>
-<p>把 Claude Code 剥到本质来看：</p>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>Claude Code = 一个 agent loop
-            + 工具 (bash, read, write, edit, glob, grep, browser...)
-            + 按需 skill 加载
-            + 上下文压缩
-            + 子 agent 派生
-            + 带依赖图的任务系统
-            + 异步邮箱的团队协调
-            + worktree 隔离的并行执行
-            + 权限治理</code></pre></figure>
-<p>就这些。这就是全部架构。每一个组件都是 harness 机制 -- 为 agent 构建的栖居世界的一部分。Agent 本身呢？是 Claude。一个模型。由 Anthropic 在人类推理和代码的全部广度上训练而成。Harness 没有让 Claude 变聪明。Claude 本来就聪明。Harness 给了 Claude 双手、双眼和一个工作空间。</p>
-<p>这就是 Claude Code 作为教学标本的意义：<strong>它展示了当你信任模型、把工程精力集中在 harness 上时会发生什么。</strong> 本仓库的课程（s01-s20）逐步拆解并重组 Claude Code 架构中的 harness 机制。学完之后，你理解的不只是 Claude Code 怎么工作，而是适用于任何领域、任何 agent 的 harness 工程通用原则。</p>
-<p>启示不是 "复制 Claude Code"。启示是：<strong>最好的 agent 产品，出自那些明白自己的工作是 harness 而非 intelligence 的工程师之手。</strong></p>
-<p>---</p>
-<h2 id="愿景-用真正的-agent-铺满宇宙">愿景：用真正的 Agent 铺满宇宙</h2>
-<p>这不只关乎编程 agent。</p>
-<p>每一个人类从事复杂、多步骤、需要判断力的工作的领域，都是 agent 可以运作的领域 -- 只要有对的 harness。本仓库中的模式是通用的：</p>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>庄园管理 agent  = 模型 + 物业传感器 + 维护工具 + 租户通信
-农业 agent      = 模型 + 土壤/气象数据 + 灌溉控制 + 作物知识
-酒店运营 agent  = 模型 + 预订系统 + 客户渠道 + 设施 API
-医学研究 agent  = 模型 + 文献检索 + 实验仪器 + 协议文档
-制造业 agent    = 模型 + 产线传感器 + 质量控制 + 物流系统
-教育 agent      = 模型 + 课程知识 + 学生进度 + 评估工具</code></pre></figure>
-<p>循环永远不变。工具在变。知识在变。权限在变。Agent = 模型(LLM) + 泛化的操作环境(Harness)。</p>
-<p>每一个读这个仓库的 harness 工程师都在学习远超软件工程的模式。你在学习为一个智能的、自动化的未来构建基础设施。每一个部署在真实领域的好 harness，都是 agent 能够感知、推理、行动的又一个阵地。</p>
-<p>先铺满工作室。然后是农田、医院、工厂。然后是城市。然后是星球。</p>
-<p><strong>Bash is all you need. Real agents are all the universe needs.</strong></p>
-<p>---</p>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>                    THE AGENT PATTERN
-                    =================
-
-    User --&gt; messages[] --&gt; LLM --&gt; response
-                                      |
-                            stop_reason == &quot;tool_use&quot;?
-                           /                          \
-                         yes                           no
-                          |                             |
-                    execute tools                    return text
-                    append results
-                    loop back -----------------&gt; messages[]
-
-
-    这是最小循环。每个 AI Agent 都需要这个循环。
-    模型决定何时调用工具、何时停止。
-    代码只是执行模型的要求。
-    本仓库教你构建围绕这个循环的一切 --
-    让 agent 在特定领域高效工作的 harness。</code></pre></figure>
-<p><strong>20 个递进式课程, 从简单循环到完整 Harness。</strong> <strong>每个课程添加一个 harness 机制。每个机制有一句格言。</strong></p>
-<blockquote><p><strong>s01</strong> &amp;nbsp; <em>"One loop &amp; Bash is all you need"</em> &amp;mdash; 一个工具 + 一个循环 = 一个 Agent  <strong>s02</strong> &amp;nbsp; <em>"加一个工具, 只加一个 handler"</em> &amp;mdash; 循环不用动, 新工具注册进 dispatch map 就行  <strong>s03</strong> &amp;nbsp; <em>"先划边界, 再给自由"</em> &amp;mdash; 先判断操作能不能做，要不要问用户  <strong>s04</strong> &amp;nbsp; <em>"挂在循环上, 不写进循环里"</em> &amp;mdash; 在工具前后留插口，不改主循环也能扩展  <strong>s05</strong> &amp;nbsp; <em>"没有计划的 agent 走哪算哪"</em> &amp;mdash; 先列步骤再动手, 完成率翻倍  <strong>s06</strong> &amp;nbsp; <em>"大任务拆小, 每个小任务干净的上下文"</em> &amp;mdash; 子 Agent 自己干活，只把结果带回来  <strong>s07</strong> &amp;nbsp; <em>"用到时再加载, 别全塞 prompt 里"</em> &amp;mdash; 技能先列目录，用到时再展开  <strong>s08</strong> &amp;nbsp; <em>"上下文总会满, 要有办法腾地方"</em> &amp;mdash; 四层压缩策略, 便宜的先跑贵的后跑  <strong>s09</strong> &amp;nbsp; <em>"记住该记的, 忘掉该忘的"</em> &amp;mdash; 三个子系统: 筛选、提取、整理  <strong>s10</strong> &amp;nbsp; <em>"prompt 是组装出来的, 不是写死的"</em> &amp;mdash; 分段 + 按需拼接  <strong>s11</strong> &amp;nbsp; <em>"错误不是终点, 是重试的起点"</em> &amp;mdash; 出错时会重试、腾空间、换路子  <strong>s12</strong> &amp;nbsp; <em>"大目标拆成小任务, 排好序, 持久化"</em> &amp;mdash; 文件持久化的任务图, 多 agent 协作的基础  <strong>s13</strong> &amp;nbsp; <em>"慢操作丢后台, agent 继续思考"</em> &amp;mdash; 后台线程跑命令, 完成后注入通知  <strong>s14</strong> &amp;nbsp; <em>"定时触发, 不需要人推"</em> &amp;mdash; 按时间自动触发任务  <strong>s15</strong> &amp;nbsp; <em>"一个搞不定, 组队来"</em> &amp;mdash; 持久化队友 + 异步邮箱  <strong>s16</strong> &amp;nbsp; <em>"队友之间要有约定"</em> &amp;mdash; 用固定的请求-回复格式沟通  <strong>s17</strong> &amp;nbsp; <em>"队友自己看板, 有活就认领"</em> &amp;mdash; 不需要领导逐个分配, 自组织  <strong>s18</strong> &amp;nbsp; <em>"各干各的目录, 互不干扰"</em> &amp;mdash; 任务管目标, worktree 管目录, 按 ID 绑定  <strong>s19</strong> &amp;nbsp; <em>"能力不够? 插上 MCP"</em> &amp;mdash; 把外部工具接进同一个工具池  <strong>s20</strong> &amp;nbsp; <em>"机制很多，循环一个"</em> &amp;mdash; 前面所有机制回到一个完整 harness</p></blockquote>
-<p>---</p>
-<h2 id="核心模式">核心模式</h2>
-<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages):
-    while True:
-        response = client.messages.create(
-            model=MODEL, system=SYSTEM,
-            messages=messages, tools=TOOLS,
-        )
-        messages.append({&quot;role&quot;: &quot;assistant&quot;,
-                         &quot;content&quot;: response.content})
-
-        if response.stop_reason != &quot;tool_use&quot;:
-            return
-
-        results = []
-        for block in response.content:
-            if block.type == &quot;tool_use&quot;:
-                output = TOOL_HANDLERS[block.name](**block.input)
-                results.append({
-                    &quot;type&quot;: &quot;tool_result&quot;,
-                    &quot;tool_use_id&quot;: block.id,
-                    &quot;content&quot;: output,
-                })
-        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})</code></pre></figure>
-<p>每个课程在这个循环之上叠加一个 harness 机制 -- 循环本身始终不变。循环属于 agent。机制属于 harness。</p>
-<h2 id="版本说明">版本说明</h2>
-<p>本仓库现在同时保留两条教程线：</p>
-<ul>
-<li><strong>新版主线：根目录 @@TOKEN0@@</strong></li>
-</ul>
-<p>根目录下的 <code>s01_*</code> 到 <code>s20_*</code> 是新的主版本，也是当前推荐阅读路径。每章包含完整叙事 README、英文/日文译本、可运行的 <code>code.py</code>，以及必要的图示。</p>
-<ul>
-<li><strong>旧版过渡：@@TOKEN0@@、@@TOKEN1@@、当前 @@TOKEN2@@</strong></li>
-</ul>
-<p>这些仍保留旧 12 章体系，暂时用于已有读者、旧链接和 Web 平台过渡。</p>
-<p>新读者请从根目录 <code>s01_agent_loop/</code> 读到 <code>s20_comprehensive/</code>。如果你是从旧链接或当前 Web 平台进入，大概率看到的是旧 12 章版本。旧版章节号和新版不完全一致，不要混用章节号。</p>
-<h3 id="旧版到新版的对应关系">旧版到新版的对应关系</h3>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>旧 12 章版本</th>
-<th>新 20 章版本</th>
-<th>主题</th>
-</tr></thead><tbody>
-<tr>
-<td>旧 s01</td>
-<td>新 s01</td>
-<td>Agent Loop</td>
-</tr>
-<tr>
-<td>旧 s02</td>
-<td>新 s02</td>
-<td>Tool Use</td>
-</tr>
-<tr>
-<td>旧 s03</td>
-<td>新 s05</td>
-<td>TodoWrite</td>
-</tr>
-<tr>
-<td>旧 s04</td>
-<td>新 s06</td>
-<td>Subagent</td>
-</tr>
-<tr>
-<td>旧 s05</td>
-<td>新 s07</td>
-<td>Skill Loading</td>
-</tr>
-<tr>
-<td>旧 s06</td>
-<td>新 s08</td>
-<td>Context Compact</td>
-</tr>
-<tr>
-<td>旧 s07</td>
-<td>新 s12</td>
-<td>Task System</td>
-</tr>
-<tr>
-<td>旧 s08</td>
-<td>新 s13</td>
-<td>Background Tasks</td>
-</tr>
-<tr>
-<td>旧 s09</td>
-<td>新 s15</td>
-<td>Agent Teams</td>
-</tr>
-<tr>
-<td>旧 s10</td>
-<td>新 s16</td>
-<td>Team Protocols</td>
-</tr>
-<tr>
-<td>旧 s11</td>
-<td>新 s17</td>
-<td>Autonomous Agents</td>
-</tr>
-<tr>
-<td>旧 s12</td>
-<td>新 s18</td>
-<td>Worktree Isolation</td>
-</tr>
-<tr>
-<td>新版新增</td>
-<td>s03、s04、s09、s10、s11、s14、s19、s20</td>
-<td>Permission、Hooks、Memory、System Prompt、Error Recovery、Cron、MCP、Comprehensive Agent</td>
-</tr>
-</tbody></table></div>
-<h2 id="范围说明">范围说明</h2>
-<p>本仓库是一个 0-&gt;1 的 harness 工程学习项目 -- 构建围绕 agent 模型的工作环境。 为保证学习路径清晰，仓库有意简化或省略了部分生产机制：</p>
-<ul>
-<li>完整事件 / Hook 总线 (例如 PreToolUse、SessionStart/End、ConfigChange)。</li>
-</ul>
-<p>s12 仅提供教学用途的最小 append-only 生命周期事件流。</p>
-<ul>
-<li>基于规则的权限治理与信任流程</li>
-<li>会话生命周期控制 (resume/fork) 与更完整的 worktree 生命周期控制</li>
-<li>完整 MCP 运行时细节 (transport/OAuth/资源订阅/轮询)</li>
-</ul>
-<p>仓库中的团队 JSONL 邮箱协议是教学实现，不是对任何特定生产内部实现的声明。</p>
-<h2 id="快速开始">快速开始</h2>
-<h3 id="新版-20-章主线">新版 20 章主线</h3>
-<figure class="code-block"><figcaption>sh</figcaption><pre><code>git clone https://github.com/shareAI-lab/learn-claude-code
-cd learn-claude-code
-pip install -r requirements.txt
-cp .env.example .env   # 编辑 .env 填入你的 ANTHROPIC_API_KEY
-
-python s01_agent_loop/code.py        # 起点 — 一个循环 + bash
-python s08_context_compact/code.py    # 上下文压缩（复杂章）
-python s20_comprehensive/code.py      # 终点章: 全部机制归到一个循环</code></pre></figure>
-<h3 id="旧版-12-章过渡线">旧版 12 章过渡线</h3>
-<figure class="code-block"><figcaption>sh</figcaption><pre><code>python agents/s01_agent_loop.py
-python agents/s12_worktree_task_isolation.py
-python agents/s_full.py</code></pre></figure>
-<h3 id="web-平台">Web 平台</h3>
-<p>当前 Web 平台仍读取 <code>docs/</code> 中的旧 12 章内容。新版 20 章请直接阅读根目录 <code>s01-s20</code>。</p>
-<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd web &amp;&amp; npm install &amp;&amp; npm run dev   # http://localhost:3000</code></pre></figure>
-<h2 id="学习路径">学习路径</h2>
-<p>主线：能动手 → 能做复杂任务 → 能记住和恢复 → 能长期运行 → 能协作 → 能扩展并合体</p>
-<figure class="code-block"><figcaption>mermaid</figcaption><pre><code>flowchart TD
-    %% 统一定义卡片样式：加入 text-align:left 保证列表不会居中乱飘
-    classDef stage1 fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#0D47A1,rx:12,ry:12,text-align:left
-    classDef stage2 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#1B5E20,rx:12,ry:12,text-align:left
-    classDef stage3 fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#E65100,rx:12,ry:12,text-align:left
-    classDef stage4 fill:#FCE4EC,stroke:#C2185b,stroke-width:2px,color:#880E4F,rx:12,ry:12,text-align:left
-    classDef stage5 fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C,rx:12,ry:12,text-align:left
-    classDef stage6 fill:#E0F7FA,stroke:#0097A7,stroke-width:2px,color:#006064,rx:12,ry:12,text-align:left
-    
-    %% 背景框样式
-    classDef groupBox fill:#F8F9FA,stroke:#CED4DA,stroke-width:2px,stroke-dasharray: 5 5,rx:15,ry:15,color:#495057
-    
-    %% 第一层：1-3阶段
-    subgraph Phase1 [&quot;🌱 阶段 1-3：基础能力构建（从简单到复杂）&quot;]
-        direction LR
-        S1[&quot;&lt;b&gt;第一阶段：让 Agent 能动手&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s01 Agent Loop&lt;/b&gt;&lt;br/&gt;└─ 一个循环 + bash&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s02 Tool Use&lt;/b&gt;&lt;br/&gt;└─ 单个到多个工具&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s03 Permission&lt;/b&gt;&lt;br/&gt;└─ 判断能不能做&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s04 Hooks&lt;/b&gt;&lt;br/&gt;└─ 工具前后留扩展插口&quot;]:::stage1
-
-        S2[&quot;&lt;b&gt;第二阶段：做复杂任务&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s05 TodoWrite&lt;/b&gt;&lt;br/&gt;└─ 先列计划，再执行&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s06 Subagent&lt;/b&gt;&lt;br/&gt;└─ 子节点干活带回结果&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s08 Context Compact&lt;/b&gt;&lt;br/&gt;└─ 长下文腾空间&quot;]:::stage2
-
-        S3[&quot;&lt;b&gt;第三阶段：记住和恢复&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s09 Memory&lt;/b&gt;&lt;br/&gt;└─ 该记记，该忘忘&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s10 System Prompt&lt;/b&gt;&lt;br/&gt;└─ 运行时组装&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s11 Error Recovery&lt;/b&gt;&lt;br/&gt;└─ 重试换路子&quot;]:::stage3
-
-        S1 ==&gt; S2 ==&gt; S3
-    end
-
-    %% 第二层：4-6阶段
-    subgraph Phase2 [&quot;🚀 阶段 4-6：高阶能力进化（长期、协作与融合）&quot;]
-        direction LR
-        S4[&quot;&lt;b&gt;第四阶段：让任务长期运行&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s12 Task System&lt;/b&gt;&lt;br/&gt;└─ 任务落盘记依赖&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s13 Background Tasks&lt;/b&gt;&lt;br/&gt;└─ 慢操作丢后台&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s14 Cron Scheduler&lt;/b&gt;&lt;br/&gt;└─ 按时自动触发&quot;]:::stage4
-
-        S5[&quot;&lt;b&gt;第五阶段：让多个 Agent 协作&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s15 Agent Teams&lt;/b&gt;&lt;br/&gt;└─ 队友 + 邮箱通信&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s16 Team Protocols&lt;/b&gt;&lt;br/&gt;└─ 固定收发格式&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s17 Autonomous Agents&lt;/b&gt;&lt;br/&gt;└─ 自己看板认领活&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s18 Worktree Isolation&lt;/b&gt;&lt;br/&gt;└─ 隔离目录&quot;]:::stage5
-
-        S6[&quot;&lt;b&gt;第六阶段：接外部能力合体&lt;/b&gt;&lt;br/&gt;━━━━━━━━━━━━━&lt;br/&gt;&lt;b&gt;s07 Skill Loading&lt;/b&gt;&lt;br/&gt;└─ 技能按需展开&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s19 MCP Plugin&lt;/b&gt;&lt;br/&gt;└─ 外部接进工具池&lt;br/&gt;&lt;br/&gt;&lt;b&gt;s20 Comprehensive Agent&lt;/b&gt;&lt;br/&gt;└─ 全机制回单循环&quot;]:::stage6
-
-        S4 ==&gt; S5 ==&gt; S6
-    end
-
-    %% 将两个模块连接起来，形成 Z 字形阅读流
-    Phase1 ===&gt; Phase2
-
-    %% 应用背景样式
-    class Phase1,Phase2 groupBox</code></pre></figure>
-<h2 id="全部章节">全部章节</h2>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>章节</th>
-<th>主题</th>
-<th>关键概念</th>
-</tr></thead><tbody>
-<tr>
-<td><a href="./s01_agent_loop/" rel="noopener noreferrer">s01</a></td>
-<td>Agent Loop</td>
-<td><code>messages</code> / <code>while True</code> / <code>stop_reason</code></td>
-</tr>
-<tr>
-<td><a href="./s02_tool_use/" rel="noopener noreferrer">s02</a></td>
-<td>Tool Use</td>
-<td><code>TOOL_HANDLERS</code> / dispatch map / 并发</td>
-</tr>
-<tr>
-<td><a href="./s03_permission/" rel="noopener noreferrer">s03</a></td>
-<td>Permission</td>
-<td><code>PermissionRule</code> / 审批管线</td>
-</tr>
-<tr>
-<td><a href="./s04_hooks/" rel="noopener noreferrer">s04</a></td>
-<td>Hooks</td>
-<td><code>PreToolUse</code> / <code>PostToolUse</code> / 扩展点</td>
-</tr>
-<tr>
-<td><a href="./s05_todo_write/" rel="noopener noreferrer">s05</a></td>
-<td>TodoWrite</td>
-<td><code>TodoItem</code> / 先计划后执行</td>
-</tr>
-<tr>
-<td><a href="./s06_subagent/" rel="noopener noreferrer">s06</a></td>
-<td>Subagent</td>
-<td><code>fresh messages[]</code> / 上下文隔离</td>
-</tr>
-<tr>
-<td><a href="./s07_skill_loading/" rel="noopener noreferrer">s07</a></td>
-<td>Skill Loading</td>
-<td><code>SkillManifest</code> / 按需注入</td>
-</tr>
-<tr>
-<td><a href="./s08_context_compact/" rel="noopener noreferrer">s08</a></td>
-<td>Context Compact</td>
-<td>snip / micro / budget / auto 四层压缩</td>
-</tr>
-<tr>
-<td><a href="./s09_memory/" rel="noopener noreferrer">s09</a></td>
-<td>Memory</td>
-<td>selection / extraction / consolidation</td>
-</tr>
-<tr>
-<td><a href="./s10_system_prompt/" rel="noopener noreferrer">s10</a></td>
-<td>System Prompt</td>
-<td>运行时组装 / 分段拼接</td>
-</tr>
-<tr>
-<td><a href="./s11_error_recovery/" rel="noopener noreferrer">s11</a></td>
-<td>Error Recovery</td>
-<td>token 升级 / fallback 模型 / 重试策略</td>
-</tr>
-<tr>
-<td><a href="./s12_task_system/" rel="noopener noreferrer">s12</a></td>
-<td>Task System</td>
-<td><code>TaskRecord</code> / <code>blockedBy</code> / 磁盘持久化</td>
-</tr>
-<tr>
-<td><a href="./s13_background_tasks/" rel="noopener noreferrer">s13</a></td>
-<td>Background Tasks</td>
-<td>线程执行 / 通知队列</td>
-</tr>
-<tr>
-<td><a href="./s14_cron_scheduler/" rel="noopener noreferrer">s14</a></td>
-<td>Cron Scheduler</td>
-<td>持久化调度 / 会话级触发</td>
-</tr>
-<tr>
-<td><a href="./s15_agent_teams/" rel="noopener noreferrer">s15</a></td>
-<td>Agent Teams</td>
-<td><code>MessageBus</code> / 收件箱 / 权限冒泡</td>
-</tr>
-<tr>
-<td><a href="./s16_team_protocols/" rel="noopener noreferrer">s16</a></td>
-<td>Team Protocols</td>
-<td>关机握手 / 计划审批</td>
-</tr>
-<tr>
-<td><a href="./s17_autonomous_agents/" rel="noopener noreferrer">s17</a></td>
-<td>Autonomous Agents</td>
-<td>空闲循环 / 自动认领</td>
-</tr>
-<tr>
-<td><a href="./s18_worktree_isolation/" rel="noopener noreferrer">s18</a></td>
-<td>Worktree Isolation</td>
-<td><code>WorktreeRecord</code> / 任务-目录绑定</td>
-</tr>
-<tr>
-<td><a href="./s19_mcp_plugin/" rel="noopener noreferrer">s19</a></td>
-<td>MCP Plugin</td>
-<td>多传输 / 通道路由 / 工具池组装</td>
-</tr>
-<tr>
-<td><a href="./s20_comprehensive/" rel="noopener noreferrer">s20</a></td>
-<td>Comprehensive Agent</td>
-<td>全部机制归到一个循环</td>
-</tr>
-</tbody></table></div>
-<h2 id="项目结构">项目结构</h2>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>learn-claude-code/
-  s01_agent_loop/          # 每章一个文件夹
-    README.md              #   中文源文档（完整叙事）
-    README.en.md           #   英文译本
-    README.ja.md           #   日文译本
-    code.py                #   独立可运行代码
-    images/                #   SVG 流程图
-  s02_tool_use/
-  ...
-  s19_mcp_plugin/
-  s20_comprehensive/       # 终点章
-  agents/                  # 旧 12 章可运行副本 + s_full.py
-  skills/                  # s07 使用的 skill 文件
-  docs/                    # 旧 12 章文档，过渡期保留
-  web/                     # 当前仍基于 docs/ 旧版内容生成
-  tests/</code></pre></figure>
-<h2 id="学完之后-从理解到落地">学完之后 -- 从理解到落地</h2>
-<p>20 个课程走完, 你已经从内到外理解了 harness 工程的运作原理。两种方式把知识变成产品:</p>
-<h3 id="kode-agent-cli-开源-coding-agent-cli">Kode Agent CLI -- 开源 Coding Agent CLI</h3>
-<blockquote><p><code>npm i -g @shareai-lab/kode</code></p></blockquote>
-<p>支持 Skill &amp; LSP, 适配 Windows, 可接 GLM / MiniMax / DeepSeek 等开放模型。装完即用。</p>
-<p>GitHub: <strong>[shareAI-lab/Kode-cli](https://github.com/shareAI-lab/Kode-cli)</strong></p>
-<h3 id="kode-agent-sdk-把-agent-能力嵌入你的应用">Kode Agent SDK -- 把 Agent 能力嵌入你的应用</h3>
-<p>官方 Claude Code Agent SDK 底层与完整 CLI 进程通信 -- 每个并发用户 = 一个终端进程。Kode SDK 是独立库, 无 per-user 进程开销, 可嵌入后端、浏览器插件、嵌入式设备等任意运行时。</p>
-<p>GitHub: <strong>[shareAI-lab/Kode-agent-sdk](https://github.com/shareAI-lab/Kode-agent-sdk)</strong></p>
-<p>---</p>
-<h2 id="姊妹教程-从被动临时会话到主动常驻助手">姊妹教程: 从<em>被动临时会话</em>到<em>主动常驻助手</em></h2>
-<p>本仓库教的 harness 属于 <strong>用完即走</strong> 型 -- 开终端、给 agent 任务、做完关掉, 下次重开是全新会话。Claude Code 就是这种模式。</p>
-<p>但 <a href="https://github.com/openclaw/openclaw" rel="noopener noreferrer">OpenClaw</a> 证明了另一种可能: 在同样的 agent core 之上, 加两个 harness 机制就能让 agent 从 "踹一下动一下" 变成 "自己隔 30 秒醒一次找活干":</p>
-<ul>
-<li><strong>心跳 (Heartbeat)</strong> -- 每 30 秒 harness 给 agent 发一条消息, 让它检查有没有事可做。没事就继续睡, 有事立刻行动。</li>
-<li><strong>定时任务 (Cron)</strong> -- agent 可以给自己安排未来要做的事, 到点自动执行。</li>
-</ul>
-<p>再加上 IM 多通道路由 (WhatsApp/Telegram/Slack/Discord 等 13+ 平台)、不清空的上下文记忆、Soul 人格系统, agent 就从一个临时工具变成了始终在线的个人 AI 助手。</p>
-<p><strong>[claw0](https://github.com/shareAI-lab/claw0)</strong> 是我们的姊妹教学仓库, 从零拆解这些 harness 机制:</p>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>claw agent = agent core + heartbeat + cron + IM chat + memory + soul</code></pre></figure>
-<figure class="code-block"><figcaption>code</figcaption><pre><code>learn-claude-code                   claw0
-(agent harness 内核:                 (主动式常驻 harness:
- 循环、工具、规划、                    心跳、定时任务、IM 通道、
- 团队、worktree 隔离)                  记忆、Soul 人格)</code></pre></figure>
-<h2 id="许可证">许可证</h2>
-<p>MIT</p>
-<p>---</p>
-<p><strong>Agency 来自模型。Harness 让 agency 落地。造好 Harness，模型会完成剩下的。</strong></p>
-<p><strong>Bash is all you need. Real agents are all the universe needs.</strong></p>
-      </article>
-    </main>
-
-    <script src="assets/book.js"></script>
-  </body>
+      <aside class="pattern-panel" aria-label="阅读方法"><p>使命 -> 第一性原理 -> 高密度团队 -> 制造能力 -> 文明尺度</p><span>本页是中文导读和章节索引，不替代原书。完整内容请阅读作者提供的免费在线版或 PDF。</span></aside>
+    </div>
+  </header>
+  <main class="reader-shell" id="chapters">
+    <aside class="toc" aria-label="文章目录"><p class="toc-title">目录</p><div class="toc-links"><a href="#part-1"><span>01</span>导读</a>
+<a href="#part-2"><span>02</span>第一部分：追求使命</a>
+<a href="#part-3"><span>03</span>第二部分：极硬核工作</a>
+<a href="#part-4"><span>04</span>第三部分：创建公司</a>
+<a href="#part-5"><span>05</span>第四部分：代表人类</a>
+<a href="#part-6"><span>06</span>附录</a></div><p class="toc-note">22 个阅读节点 · 401 页原书</p></aside>
+    <article class="article">
+      <section class="source-box"><p class="source-note">来源说明</p><h2>先读地图，再回到原书</h2><p>本页根据用户提供的免费 PDF 目录结构制作中文导读，并链接到作者公开提供的免费在线版与 PDF 入口。原书版权归 Eric Jorgenson 所有；正式引用请回到原文和一手来源核对。</p><div class="source-actions"><a href="https://www.elonmuskbook.org/free-book-of-elon-musk" rel="noopener noreferrer">获取官方免费 PDF/EPUB</a><a href="https://www.elonmuskbook.org/the-book-of-elon-free-online-edition" rel="noopener noreferrer">阅读官方在线全文</a></div></section>
+      <section class="part-section" id="part-1">
+      <div class="part-heading"><p class="eyebrow">Opening</p><h2>导读</h2><p>先理解这本书的读法：它不是传记，而是从访谈、推文、演讲中整理出的行动原则。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 15</span></div>
+      <h3>阅读说明</h3><p class="chapter-en">Notes on This Book</p>
+      <p>把本书当作思想索引，而不是逐字引用来源。正式引用前应回到原文和一手材料核对。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 17</span></div>
+      <h3>序言</h3><p class="chapter-en">Foreword</p>
+      <p>少谈人物崇拜，多看如何把使命、速度、工程能力和组织执行力合在一起。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 21</span></div>
+      <h3>作者欢迎辞</h3><p class="chapter-en">Eric&#x27;s Welcome to This Book</p>
+      <p>作者解释选材和编排方法，帮助读者从公开表达中抽取可复用的思维模型。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+<section class="part-section" id="part-2">
+      <div class="part-heading"><p class="eyebrow">Part I: Pursue Purpose</p><h2>第一部分：追求使命</h2><p>使命感不是口号，而是把个人精力压到长期问题上的选择。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 31</span></div>
+      <h3>有使命地生活</h3><p class="chapter-en">Living a Purposeful Life</p>
+      <p>把“有用”放在自我表达之前：持续创造、承受恐惧、在世界还没准备好时提前开始。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 53</span></div>
+      <h3>像物理学家一样思考</h3><p class="chapter-en">Think Like a Physicist</p>
+      <p>回到第一性原理、逼近真实、用极限思维拆解看似不可能的目标，并不断修正自己。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 73</span></div>
+      <h3>工程的价值</h3><p class="chapter-en">The Value of Engineering</p>
+      <p>工程把想法变成世界变化，也决定竞争中的生死速度。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+<section class="part-section" id="part-3">
+      <div class="part-heading"><p class="eyebrow">Part II: Ultra Hardcore Work</p><h2>第二部分：极硬核工作</h2><p>责任、团队、组织设计、速度和制造，是把使命变成现实的五个杠杆。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 85</span></div>
+      <h3>需要什么</h3><p class="chapter-en">What It Takes</p>
+      <p>真正承担责任意味着深入一线、理解细节、在痛苦和不确定里继续前进。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 99</span></div>
+      <h3>打造卓越团队</h3><p class="chapter-en">Building Exceptional Teams</p>
+      <p>团队不是人群，而是围绕目标组织起来的能力密度。文化要偏向建造者、反馈和高标准。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 111</span></div>
+      <h3>设计组织</h3><p class="chapter-en">Designing the Organization</p>
+      <p>组织复杂度会吞掉速度：先删减、再优化、最后自动化。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>04</span><span>p. 139</span></div>
+      <h3>疯狂紧迫感</h3><p class="chapter-en">Maniacal Urgency</p>
+      <p>速度既是进攻也是防守。用激进时间表暴露约束，再围绕约束快速迭代。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>05</span><span>p. 151</span></div>
+      <h3>我们必须制造东西</h3><p class="chapter-en">We Must Make Stuff</p>
+      <p>制造不是执行尾声，而是护城河本身。工厂、供应链和产能决定愿景能否落地。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+<section class="part-section" id="part-4">
+      <div class="part-heading"><p class="eyebrow">Part III: Building Companies</p><h2>第三部分：创建公司</h2><p>Zip2、PayPal、Tesla、SpaceX 展示了方法如何落地：连续 all-in，连续纠错。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 163</span></div>
+      <h3>成为创始人</h3><p class="chapter-en">Becoming a Founder</p>
+      <p>看创始人在错误、冲突、融资和失控局面中如何快速修正。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 187</span></div>
+      <h3>建造 Tesla</h3><p class="chapter-en">Building Tesla</p>
+      <p>大型硬科技公司需要同时处理技术、制造、舆论和资本。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 219</span></div>
+      <h3>建造 SpaceX</h3><p class="chapter-en">Building SpaceX</p>
+      <p>预期会失败，但失败必须带来学习；目标是把几乎不可能的事压到刚好可行。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+<section class="part-section" id="part-5">
+      <div class="part-heading"><p class="eyebrow">Part IV: On Behalf of Humanity</p><h2>第四部分：代表人类</h2><p>把视角拉到文明尺度：公司、丰裕、风险和多行星未来。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 251</span></div>
+      <h3>建造我们的未来</h3><p class="chapter-en">Building Our Future</p>
+      <p>公司可以是推动进步的工具：创造财富、组织人才、扩大问题解决能力。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 265</span></div>
+      <h3>丰裕时代</h3><p class="chapter-en">The Age of Abundance</p>
+      <p>稀缺、指数级智能、人机接口、自动驾驶和可持续能源共同构成未来图景。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 283</span></div>
+      <h3>我们的生存风险</h3><p class="chapter-en">Our Existential Risks</p>
+      <p>把战争、能源、AI 对齐、人口下降和小行星纳入长期行动优先级。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>04</span><span>p. 311</span></div>
+      <h3>成为多行星物种</h3><p class="chapter-en">Becoming Multiplanetary</p>
+      <p>多行星是文明级备份和生命扩展：火星是入口，目标是让生命走出地球脆弱性。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+<section class="part-section" id="part-6">
+      <div class="part-heading"><p class="eyebrow">Bonus</p><h2>附录</h2><p>附录适合当作速查表：方法、时间线、推荐阅读和来源。</p></div>
+      <div class="chapter-grid"><article class="chapter-card">
+      <div class="chapter-meta"><span>01</span><span>p. 335</span></div>
+      <h3>69 条 Musk 核心方法</h3><p class="chapter-en">The 69 Core Musk Methods</p>
+      <p>把全书方法浓缩成清单，适合做复盘或团队讨论。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>02</span><span>p. 339</span></div>
+      <h3>Elon Musk 时间线</h3><p class="chapter-en">Timeline of Elon Musk</p>
+      <p>把章节主题重新放回创业和技术发展的历史脉络。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>03</span><span>p. 343</span></div>
+      <h3>Elon 推荐阅读</h3><p class="chapter-en">Elon&#x27;s Recommended Reading</p>
+      <p>书单揭示了他的知识输入结构：科幻、物理、工程、商业和文明史。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article>
+<article class="chapter-card">
+      <div class="chapter-meta"><span>04</span><span>p. 357</span></div>
+      <h3>来源与致谢</h3><p class="chapter-en">Sources and Appreciation</p>
+      <p>严肃引用仍应回到原访谈、演讲或推文。</p><ul><li>第一性原理</li><li>制造能力</li><li>组织速度</li></ul>
+    </article></div>
+    </section>
+    </article>
+  </main>
+  <script src="assets/book.js"></script>
+</body>
 </html>
