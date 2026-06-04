@@ -1,0 +1,12 @@
+{
+  "name": "learn-claude-code-zh-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "python3 build_site.py",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0"
+  }
+}

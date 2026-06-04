@@ -1,8 +1,10 @@
 __pycache__/
 *.pyc
 pipeline.py
-playwright.config.js
 data/
+!data/
+data/*
+!data/readme-zh.md
 templates/
-tests/
 node_modules/
+test-results/

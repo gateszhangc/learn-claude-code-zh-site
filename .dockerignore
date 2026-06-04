@@ -1,0 +1,7 @@
+.git
+node_modules
+test-results
+__pycache__
+data/chapters
+data/chapters_manifest.json
+*.pyc
