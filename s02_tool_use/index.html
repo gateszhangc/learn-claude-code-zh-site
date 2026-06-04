@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s02: Tool Use — 多加一个工具，只加一行 · Learn Claude Code</title>
+    <meta name="description" content="新工具注册进 dispatch map">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s02_tool_use/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s02_tool_use" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s02 / Harness 课程</p>
+        <h1>s02: Tool Use — 多加一个工具，只加一行</h1>
+        <p class="lead">新工具注册进 dispatch map。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s01_agent_loop/"><span>上一章</span><strong>s01 Agent Loop</strong></a><a class="page-link is-next" href="/s03_permission/"><span>下一章</span><strong>s03 Permission</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="is-current" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s02_tool_use" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s02_tool_use</a></p>
+        <h1 id="s02-tool-use-多加一个工具-只加一行">s02: Tool Use — 多加一个工具，只加一行</h1>
+<p>s01 → <code>s02</code> → <a href="/s03_permission/" rel="noopener noreferrer">s03</a> → s04 → ... → s20</p>
+<blockquote><p><em>"加一个工具, 只加一个 handler"</em> — 循环不用动, 新工具注册进 dispatch map 就行。  <strong>Harness 层</strong>: 工具分发 — 扩展模型能触达的边界。</p></blockquote>
+<hr class="section-rule">
+<h2 id="只有-bash-一个工具">只有 bash 一个工具</h2>
+<p>s01 的 Agent 只有一个 bash 工具。读文件要 <code>cat</code>，写文件要 <code>echo "..." &gt; file.py</code>，改文件要 <code>sed</code>。</p>
+<p>模型想的是"读这个文件"，却要拼出 <code>cat path/to/file</code>。多了一层翻译，浪费 token，还容易拼错。</p>
+<hr class="section-rule">
+<h2 id="全局视角-工具分发">全局视角：工具分发</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s02_tool_use/images/tool-dispatch.svg" alt="Tool Dispatch" loading="lazy"></figure>
+<p>s01 的循环完全保留（LLM 调用、stop_reason 判断、消息追加）。唯一的变动在工具执行那 1 行：<code>run_bash()</code> 替换为 <code>TOOL_HANDLERS[block.name]()</code> 查表分发。</p>
+<p>给 Agent 加一个工具只需要做两件事：</p>
+<ol>
+<li><strong>定义工具</strong>：在 <code>TOOLS</code> 数组里加一条描述</li>
+<li><strong>注册处理函数</strong>：在 <code>TOOL_HANDLERS</code> 字典里加一个映射</li>
+</ol>
+<hr class="section-rule">
+<h2 id="从-1-个工具到-5-个工具">从 1 个工具到 5 个工具</h2>
+<p>s01 只有一个 bash：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>TOOLS = [{&quot;name&quot;: &quot;bash&quot;, ...}]
+
+def run_bash(command): ...</code></pre></figure>
+<p>s02 加到 5 个，每个工具都是独立定义：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>TOOLS = [
+    {&quot;name&quot;: &quot;bash&quot;,       &quot;description&quot;: &quot;Run a shell command.&quot;, ...},
+    {&quot;name&quot;: &quot;read_file&quot;,  &quot;description&quot;: &quot;Read file contents.&quot;,  ...},
+    {&quot;name&quot;: &quot;write_file&quot;, &quot;description&quot;: &quot;Write content to file.&quot;, ...},
+    {&quot;name&quot;: &quot;edit_file&quot;,  &quot;description&quot;: &quot;Replace text in file once.&quot;, ...},
+    {&quot;name&quot;: &quot;glob&quot;,       &quot;description&quot;: &quot;Find files by pattern.&quot;, ...},
+]</code></pre></figure>
+<p>每个工具有自己的实现函数：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def run_read(path, limit=None):
+    lines = safe_path(path).read_text().splitlines()
+    if limit:
+        lines = lines[:limit]
+    return &quot;\n&quot;.join(lines)
+
+def run_write(path, content):
+    safe_path(path).write_text(content)
+    return f&quot;Wrote {len(content)} bytes to {path}&quot;
+
+def run_edit(path, old_text, new_text):
+    text = safe_path(path).read_text()
+    if old_text not in text:
+        return &quot;Error: text not found&quot;
+    safe_path(path).write_text(text.replace(old_text, new_text, 1))
+    return f&quot;Edited {path}&quot;
+
+def run_glob(pattern):
+    import glob as g
+    return &quot;\n&quot;.join(g.glob(pattern, root_dir=WORKDIR))</code></pre></figure>
+<hr class="section-rule">
+<h2 id="工具分发">工具分发</h2>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>TOOL_HANDLERS = {
+    &quot;bash&quot;:       run_bash,
+    &quot;read_file&quot;:  run_read,
+    &quot;write_file&quot;: run_write,
+    &quot;edit_file&quot;:  run_edit,
+    &quot;glob&quot;:       run_glob,
+}
+
+# 循环里只改了一行——从硬编码 run_bash 变成查表：
+for block in response.content:
+    if block.type == &quot;tool_use&quot;:
+        handler = TOOL_HANDLERS[block.name]    # 查表
+        output = handler(**block.input)         # 调用
+        results.append(...)</code></pre></figure>
+<p>加一个工具 = 在 <code>TOOLS</code> 数组加一条 + 在 <code>TOOL_HANDLERS</code> 字典加一行。循环不变。</p>
+<hr class="section-rule">
+<h2 id="多个工具调用">多个工具调用</h2>
+<p>模型经常一次返回多个 tool_use："读一下 a.py 和 b.py，然后列出所有 .py 文件"。</p>
+<p>教学版按 <code>response.content</code> 原始顺序逐个执行。CC 的做法更复杂：按原始顺序切成连续 batch，batch 内并发安全的工具并行执行，batch 间严格顺序（见附录）。</p>
+<hr class="section-rule">
+<h2 id="速查">速查</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>概念</th>
+<th>一句话</th>
+</tr></thead><tbody>
+<tr>
+<td>TOOL_HANDLERS</td>
+<td>工具名 → 处理函数的字典。加工具 = 加一行映射</td>
+</tr>
+<tr>
+<td>工具定义</td>
+<td>告诉模型"我能做什么"的 JSON schema</td>
+</tr>
+<tr>
+<td>多工具调用</td>
+<td>模型可一次返回多个 tool_use，教学版按原始顺序逐个执行</td>
+</tr>
+<tr>
+<td>循环不变</td>
+<td>s01 的 <code>while True</code> 循环一行都没改</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="相对-s01-的变更">相对 s01 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s01)</th>
+<th>之后 (s02)</th>
+</tr></thead><tbody>
+<tr>
+<td>工具数量</td>
+<td>1 (bash)</td>
+<td>5 (+read, write, edit, glob)</td>
+</tr>
+<tr>
+<td>工具执行</td>
+<td>硬编码 <code>run_bash()</code></td>
+<td>TOOL_HANDLERS 查表分发</td>
+</tr>
+<tr>
+<td>路径安全</td>
+<td>无</td>
+<td>safe_path 校验（仅 file tools）</td>
+</tr>
+<tr>
+<td>循环</td>
+<td><code>while True</code> + <code>stop_reason</code></td>
+<td>与 s01 完全一致</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s02_tool_use/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Read the file README.md and tell me what this project is about</code></li>
+<li><code>Create a file called test.py that prints "hello", then read it back</code></li>
+<li><code>Find all Python files in this directory</code></li>
+<li><code>Read both README.md and requirements.txt, then create a summary file</code></li>
+</ol>
+<p>观察重点：模型什么时候只调一个工具，什么时候一次调多个？多个工具调用的顺序和结果是否正确？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>现在 Agent 有 5 个专用工具。file tools 受 <code>safe_path</code> 保护，但 bash 不受限制，<code>rm -rf /</code> 还是能跑。</p>
+<p>s03 Permission → 在工具执行之前加一道门：这个操作安全吗？需要用户批准吗？</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>Tool.ts</code>、<code>tools.ts</code>、<code>toolOrchestration.ts</code>、<code>toolExecution.ts</code>、<code>StreamingToolExecutor.ts</code> 的核查。</p></blockquote>
+<h3 id="一-工具定义方式">一、工具定义方式</h3>
+<p><strong>教学版</strong>：<code>TOOLS</code> 数组 + <code>TOOL_HANDLERS</code> 字典。定义和实现分开。 <strong>CC</strong>：每个工具是 <code>buildTool()</code> 创建的独立对象，包含 schema、验证、权限、执行。<code>getAllBaseTools()</code> 汇总所有工具。</p>
+<p>教学版的分离方式对教学更清晰——读者一眼看到"加一个工具 = 两条定义"。</p>
+<h3 id="二-并发安全判断-isconcurrencysafe">二、并发安全判断：isConcurrencySafe()</h3>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s02_tool_use/images/concurrency-comparison.svg" alt="Tool Concurrency" loading="lazy"></figure>
+<p>教学版按原始顺序逐个执行，不做并发。CC 用 <code>isConcurrencySafe(input)</code> 判断能否并发——注意这不是简单的"只读 vs 写"，而是按具体输入判断：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th></th>
+<th>isReadOnly</th>
+<th>isConcurrencySafe</th>
+</tr></thead><tbody>
+<tr>
+<td>FileRead</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>Glob</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>Bash <code>ls</code></td>
+<td>true</td>
+<td><strong>true</strong> ← 关键差异</td>
+</tr>
+<tr>
+<td>Bash <code>rm</code></td>
+<td>false</td>
+<td>false</td>
+</tr>
+<tr>
+<td>TaskCreate</td>
+<td>false</td>
+<td><strong>true</strong> ← 改状态但可并发（TaskCreate 在 s12 介绍）</td>
+</tr>
+</tbody></table></div>
+<p>CC 的 Bash tool 的 <code>isConcurrencySafe</code> 等于 <code>isReadOnly</code>——只读命令可并发，写命令不可。TaskCreate 虽然改了任务文件，但每次都写不同的文件，所以可以并发。</p>
+<h3 id="三-分区算法">三、分区算法</h3>
+<p>CC 的 <code>partitionToolCalls()</code>（<code>toolOrchestration.ts:91-115</code>）不是分两组，而是把工具调用<strong>按连续块分批</strong>：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>[read A, read B, glob *.py, bash &quot;rm x&quot;, read C]
+  → batch1(并发): [read A, read B, glob *.py]
+  → batch2(串行): [bash &quot;rm x&quot;]
+  → batch3(并发): [read C]</code></pre></figure>
+<p>并发安全的连续块编入同一个 batch，batch 内真正并发执行（<code>toolOrchestration.ts:152-176</code>，有并发上限）。遇到非并发安全的就开新 batch 串行执行。batch 之间严格顺序。</p>
+<h3 id="四-验证管线">四、验证管线</h3>
+<p>CC 的每个工具调用经过严格的 5 步验证（<code>toolExecution.ts</code>）：</p>
+<ol>
+<li><strong>Zod schema 验证</strong>（<code>614-680</code>，教学版用 JSON Schema 替代）：参数类型/结构检查</li>
+<li><strong>工具级 validateInput()</strong>（<code>682-733</code>）：参数值验证（如路径是否在工作区内）</li>
+<li><strong>PreToolUse hooks</strong>（<code>800-862</code>，s04 详细介绍）：钩子可以返回消息、修改输入、阻止执行</li>
+<li><strong>权限检查</strong>（<code>921-931</code>，s03 的核心内容）：canUseTool + checkPermissions → allow/deny/ask</li>
+<li><strong>执行 tool.call()</strong>（<code>1207-1222</code>）</li>
+</ol>
+<p>教学版省略了 Zod（用 JSON Schema）、省略了 validateInput（用安全函数）、保留了权限检查和钩子概念。</p>
+<h3 id="五-流式工具执行">五、流式工具执行</h3>
+<p>CC 的 <code>StreamingToolExecutor</code>（<code>StreamingToolExecutor.ts</code>）让工具在模型还在生成时就启动——不等模型说完。<code>read_file</code> 可能在模型还在输出"我来分析"的时候就跑完了。教学版不实现这个，目标和 s01 一致——概念清晰，不追求性能极致。</p>
+<h3 id="六-工具结果持久化">六、工具结果持久化</h3>
+<p>每个工具有一个 <code>maxResultSizeChars</code> 字段。结果超过这个值就落盘，模型看到的是预览 + 文件路径。FileRead 特殊——设为 <code>Infinity</code>，防止读文件的输出又被当成文件落盘。具体来说，如果 FileRead 的结果超过阈值被落盘，模型下次读那个落盘文件时又会触发落盘 → 无限循环（读文件 → 落盘 → 再读 → 再落盘 → ...）。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v0, ja@v0 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s01_agent_loop/"><span>上一章</span><strong>s01 Agent Loop</strong></a><a class="page-link is-next" href="/s03_permission/"><span>下一章</span><strong>s03 Permission</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#只有-bash-一个工具"><span>01</span>只有 bash 一个工具</a>
+<a class="level-2" href="#全局视角-工具分发"><span>02</span>全局视角：工具分发</a>
+<a class="level-2" href="#从-1-个工具到-5-个工具"><span>03</span>从 1 个工具到 5 个工具</a>
+<a class="level-2" href="#工具分发"><span>04</span>工具分发</a>
+<a class="level-2" href="#多个工具调用"><span>05</span>多个工具调用</a>
+<a class="level-2" href="#速查"><span>06</span>速查</a>
+<a class="level-2" href="#相对-s01-的变更"><span>07</span>相对 s01 的变更</a>
+<a class="level-2" href="#试一下"><span>08</span>试一下</a>
+<a class="level-2" href="#接下来"><span>09</span>接下来</a>
+<a class="level-3" href="#一-工具定义方式"><span>10</span>一、工具定义方式</a>
+<a class="level-3" href="#二-并发安全判断-isconcurrencysafe"><span>11</span>二、并发安全判断：isConcurrencySafe()</a>
+<a class="level-3" href="#三-分区算法"><span>12</span>三、分区算法</a>
+<a class="level-3" href="#四-验证管线"><span>13</span>四、验证管线</a>
+<a class="level-3" href="#五-流式工具执行"><span>14</span>五、流式工具执行</a>
+<a class="level-3" href="#六-工具结果持久化"><span>15</span>六、工具结果持久化</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s16: Team Protocols — 队友之间要有约定 · Learn Claude Code</title>
+    <meta name="description" content="队友之间要有约定">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s16_team_protocols/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s16_team_protocols" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s16 / Harness 课程</p>
+        <h1>s16: Team Protocols — 队友之间要有约定</h1>
+        <p class="lead">队友之间要有约定。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s15_agent_teams/"><span>上一章</span><strong>s15 Agent Teams</strong></a><a class="page-link is-next" href="/s17_autonomous_agents/"><span>下一章</span><strong>s17 Autonomous Agents</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="is-current" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s16_team_protocols" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s16_team_protocols</a></p>
+        <h1 id="s16-team-protocols-队友之间要有约定">s16: Team Protocols — 队友之间要有约定</h1>
+<p>s01 → ... → s14 → s15 → <code>s16</code> → <a href="/s17_autonomous_agents/" rel="noopener noreferrer">s17</a> → s18 → s19 → s20</p>
+<blockquote><p><em>"队友之间要有约定"</em> — request-response 模式驱动协商。  <strong>Harness 层</strong>: 协议 — Agent 之间的结构化握手。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>s15 的队友能干活了，但协调是松散的：Lead 发消息，队友回复，没有结构化的协议。两个场景暴露了问题：</p>
+<p><strong>关机</strong>：Lead 想让 Alice 关机。直接杀线程，Alice 写了一半的文件留在磁盘上。需要握手：Lead 发请求，Alice 确认收尾后关机。</p>
+<p><strong>计划审批</strong>：Bob 想重构认证模块，属于高风险操作。应该先让 Lead 看 Bob 的计划，审批通过后再动手。</p>
+<p>这两个场景结构完全一样：一方发请求，另一方给回复，请求和回复通过同一个 ID 关联。有状态机追踪：pending → approved / rejected。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s16_team_protocols/images/team-protocols-overview.svg" alt="Team Protocols Overview" loading="lazy"></figure>
+<p>教学代码承接前面章节的 Agent 能力脉络，在 S15 团队通信基础上加入结构化协议。为了聚焦协议机制，省略了完整错误恢复、记忆和技能系统。新增三样：<strong>ProtocolState</strong>（请求状态追踪）、<strong>dispatch_message</strong>（按消息类型路由到处理器）、<strong>match_response</strong>（通过 request_id 关联回复与请求，含类型校验）。</p>
+<p>两种协议，一套机制：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>协议</th>
+<th>方向</th>
+<th>用途</th>
+</tr></thead><tbody>
+<tr>
+<td>shutdown_request / response</td>
+<td>Lead → 队友</td>
+<td>体面关机握手</td>
+</tr>
+<tr>
+<td>plan_approval_request / response</td>
+<td>队友 → Lead</td>
+<td>计划审批协议示例</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>教学版演示了计划审批的请求-响应消息流程，没有实现执行门控（未 approved 时拦截 bash/write_file）。真实 CC 的队友有 permission gating 机制。</p></blockquote>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="protocolstate-请求状态">ProtocolState: 请求状态</h3>
+<p>每个协议请求创建一条状态记录，记录谁发的、发给谁、当前状态、附带内容：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>@dataclass
+class ProtocolState:
+    request_id: str      # 唯一 ID，如 &quot;req_004281&quot;
+    type: str            # &quot;shutdown&quot; | &quot;plan_approval&quot;
+    sender: str          # 发起方
+    target: str          # 接收方
+    status: str          # pending | approved | rejected
+    payload: str         # 计划文本或关机原因
+    created_at: float    # 时间戳
+
+pending_requests: dict[str, ProtocolState] = {}</code></pre></figure>
+<p>发请求时创建记录，收回复时通过 <code>request_id</code> 找到对应记录，更新状态。</p>
+<h3 id="四步协议流程">四步协议流程</h3>
+<p>以关机为例，完整链路：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>① Lead 发请求
+   req_id = new_request_id()           # &quot;req_004281&quot;
+   pending_requests[req_id] = ProtocolState(type=&quot;shutdown&quot;, status=&quot;pending&quot;, ...)
+   BUS.send(&quot;lead&quot;, &quot;alice&quot;, &quot;shutdown_request&quot;, metadata={&quot;request_id&quot;: req_id})
+
+② 队友收到 → dispatch
+   inbox = BUS.read_inbox(&quot;alice&quot;)
+   msg_type = msg[&quot;type&quot;]              # &quot;shutdown_request&quot;
+   → 路由到 handle_shutdown_request()
+
+③ 队友回复
+   BUS.send(&quot;alice&quot;, &quot;lead&quot;, &quot;shutdown_response&quot;,
+            metadata={&quot;request_id&quot;: req_id, &quot;approve&quot;: True})
+
+④ Lead 收响应 → match
+   match_response(&quot;shutdown_response&quot;, req_id, approve=True)
+   pending_requests[req_id].status = &quot;approved&quot;</code></pre></figure>
+<p><code>request_id</code> 是贯穿全链路的关联键，请求带着它出去，回复带着它回来。</p>
+<blockquote><p>教学版用 <code>shutdown_response</code> 统一命名（approve 字段区分同意/拒绝）。真实源码拆成 <code>shutdown_approved</code> 和 <code>shutdown_rejected</code> 两种独立消息类型（<code>teammateMailbox.ts:720-763</code>）。</p></blockquote>
+<h3 id="dispatchmessage-按类型路由">dispatch_message: 按类型路由</h3>
+<p>队友的 inbox 不只收普通消息，还收协议消息。<code>handle_inbox_message</code> 按消息类型分发：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def handle_inbox_message(name, msg, messages):
+    msg_type = msg.get(&quot;type&quot;, &quot;message&quot;)
+    req_id = msg.get(&quot;metadata&quot;, {}).get(&quot;request_id&quot;, &quot;&quot;)
+
+    if msg_type == &quot;shutdown_request&quot;:
+        BUS.send(name, &quot;lead&quot;, &quot;Shutting down.&quot;, &quot;shutdown_response&quot;,
+                 {&quot;request_id&quot;: req_id, &quot;approve&quot;: True})
+        return True   # 停止循环
+
+    if msg_type == &quot;plan_approval_response&quot;:
+        approve = msg[&quot;metadata&quot;].get(&quot;approve&quot;, False)
+        messages.append({&quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;[Plan approved]&quot; if approve else &quot;[Plan rejected]&quot;})
+    return False       # 继续循环</code></pre></figure>
+<p>新增协议类型只需加新的 <code>if</code> 分支。</p>
+<h3 id="matchresponse-类型校验">match_response: 类型校验</h3>
+<p><code>match_response</code> 不只按 <code>request_id</code> 找状态，还会校验响应类型是否匹配请求类型：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def match_response(response_type, request_id, approve):
+    state = pending_requests.get(request_id)
+    if not state:
+        return
+    if state.type == &quot;shutdown&quot; and response_type != &quot;shutdown_response&quot;:
+        return  # type mismatch, skip
+    if state.type == &quot;plan_approval&quot; and response_type != &quot;plan_approval_response&quot;:
+        return
+    if state.status != &quot;pending&quot;:
+        return  # already resolved, skip duplicate
+    state.status = &quot;approved&quot; if approve else &quot;rejected&quot;</code></pre></figure>
+<p>一个 shutdown_response 不会意外 approve 一个 plan_approval 请求。</p>
+<h3 id="统一-inbox-消费-consumeleadinbox">统一 inbox 消费：consume_lead_inbox</h3>
+<p><code>check_inbox</code> 工具和主循环末尾都调用同一个 <code>consume_lead_inbox()</code> 函数，先路由协议消息再返回剩余内容，避免消息被读走但协议状态没更新：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def consume_lead_inbox(route_protocol=True) -&gt; list[dict]:
+    msgs = BUS.read_inbox(&quot;lead&quot;)
+    if route_protocol:
+        for msg in msgs:
+            meta = msg.get(&quot;metadata&quot;, {})
+            req_id = meta.get(&quot;request_id&quot;, &quot;&quot;)
+            msg_type = msg.get(&quot;type&quot;, &quot;&quot;)
+            if req_id and msg_type.endswith(&quot;_response&quot;):
+                match_response(msg_type, req_id, meta.get(&quot;approve&quot;, False))
+    return msgs</code></pre></figure>
+<p>主循环末尾还会把 inbox 消息注入到 <code>history</code>，让 LLM 能看到并做出反应。</p>
+<h3 id="队友-idle-loop-等待而不是退出">队友 idle loop：等待而不是退出</h3>
+<p>s15 的队友跑完 10 轮就退出。s16 的队友在 LLM 返回非 tool_use 后进入 idle 等待：轮询 inbox，收到 shutdown_request 就响应退出，收到新消息就继续工作。</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>LLM 返回非 tool_use
+  → idle: 每秒轮询 inbox
+  → 收到 shutdown_request → 回复 shutdown_response → 退出
+  → 收到新消息 → 注入 messages → 继续 LLM turn</code></pre></figure>
+<p>教学版省略了 idle_notification 给 Lead 的通知。真实 CC 在 idle 时发 <code>idle_notification</code>，Lead 收到后知道队友空闲，可以分配新任务。</p>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>1. Lead: &quot;让 Alice 创建一个文件，然后关机&quot;
+2. Lead → spawn_teammate(&quot;alice&quot;, &quot;backend&quot;, &quot;创建 config.py&quot;)
+3. alice 线程启动 → write_file(&quot;config.py&quot;, &quot;...&quot;) → 完成 → idle
+4. Lead → request_shutdown(&quot;alice&quot;)
+   → BUS.send(&quot;shutdown_request&quot;, {request_id: &quot;req_000142&quot;})
+5. alice idle 轮询收到 → handle_shutdown_request
+   → BUS.send(&quot;shutdown_response&quot;, {request_id: &quot;req_000142&quot;, approve: True})
+6. Lead consume_lead_inbox → match_response(&quot;req_000142&quot;, approve=True)
+   → pending_requests[&quot;req_000142&quot;].status = &quot;approved&quot;
+   → inbox 消息注入 history，LLM 看到关机结果</code></pre></figure>
+<p>关机握手完整：请求 → 确认 → 关机。每一步有 <code>request_id</code> 追溯。</p>
+<hr class="section-rule">
+<h2 id="相对-s15-的变更">相对 s15 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s15)</th>
+<th>之后 (s16)</th>
+</tr></thead><tbody>
+<tr>
+<td>协调方式</td>
+<td>松散文本消息</td>
+<td>结构化请求-响应协议</td>
+</tr>
+<tr>
+<td>请求追踪</td>
+<td>无</td>
+<td>ProtocolState + pending_requests dict</td>
+</tr>
+<tr>
+<td>消息路由</td>
+<td>全部当文本处理</td>
+<td>dispatch_message 按类型分发</td>
+</tr>
+<tr>
+<td>关机</td>
+<td>自然退出或杀线程</td>
+<td>request_id 握手机制</td>
+</tr>
+<tr>
+<td>计划审批</td>
+<td>无</td>
+<td>消息流程示例（未实现执行门控）</td>
+</tr>
+<tr>
+<td>新消息类型</td>
+<td>message, result</td>
+<td>+ shutdown_request/response, plan_approval_request/response</td>
+</tr>
+<tr>
+<td>队友生命周期</td>
+<td>最多 10 轮</td>
+<td>idle loop（等待 inbox 消息）</td>
+</tr>
+<tr>
+<td>Lead inbox</td>
+<td>check_inbox 和主循环分别读</td>
+<td>统一 consume_lead_inbox</td>
+</tr>
+<tr>
+<td>Lead 工具</td>
+<td>14 (s15)</td>
+<td>14（核心工具集加入 request_shutdown, request_plan, review_plan）</td>
+</tr>
+<tr>
+<td>队友工具</td>
+<td>4 (s15)</td>
+<td>+ submit_plan (5)</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s16_team_protocols/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Spawn alice as a backend dev. Ask her to create a file. Then request her shutdown.</code></li>
+<li><code>Spawn bob with a refactoring task. Have him submit a plan first. Then review and approve it.</code></li>
+</ol>
+<p>观察重点：关机握手是否完整（请求 → 确认 → 关机）？<code>pending_requests</code> 的状态是否正确转换？<code>request_id</code> 是否在请求和响应之间保持一致？队友 idle 后是否能收到 shutdown_request？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>s15-s16 中，Lead 必须给每个队友分配任务。"Alice 做这个，Bob 做那个"。任务看板上有 10 个未认领的任务，Lead 得手动 assign。</p>
+<p>能不能让队友自己看板、自己认领？Lead 只需要创建任务，队友自己发现、自己认领、自己完成。</p>
+<p>s17 Autonomous Agents → 队友自组织，不需要领导分配。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<p>CC 的团队协议实现（<code>teammateMailbox.ts</code>，1184 行）和教学版在核心结构上一致：request_id + approve/reject 的请求-响应模式。差异在于：</p>
+<p><strong>关机协议</strong>：CC 的 shutdown 是三向通信（<code>teammateMailbox.ts:720-763</code>、<code>SendMessageTool.ts:268-430</code>）。Lead 发 <code>shutdown_request</code>，队友回复 <code>shutdown_approved</code>（或 <code>shutdown_rejected</code> 附原因），系统发送 <code>teammate_terminated</code> 通知所有相关方。关机确认后系统自动清理 pane（tmux/iTerm2）、unassign 任务、从 team config 移除成员（<code>useInboxPoller.ts:677-800</code>）。教学版用 <code>shutdown_response</code> 统一命名，真实源码拆成 approved/rejected 两种独立消息。</p>
+<p><strong>计划审批</strong>：真实源码里 plan approval request 由 <code>ExitPlanModeV2Tool.ts:263-312</code> 在 plan-mode-required 队友退出 plan mode 时产生。<code>useInboxPoller.ts:599-661</code> 当前会自动回写 approval，并把请求交给 Lead 作为上下文（regular message）。<code>SendMessageTool.ts:434-518</code> 仍保留显式 approve/reject response 能力，审批时可同时设置 <code>permissionMode</code>（如"批准但以 plan mode 运行"），响应中可包含 <code>feedback</code> 字符串供队友修正后重新提交。不是简单的"Lead 手动 review_plan 工具"流程。</p>
+<p><strong>消息格式</strong>：CC 的协议消息是结构化的 JSON（有 Zod schema 验证），教学版用简单的 type + metadata 字典。字段名也不统一：permission 用 <code>request_id</code>（<code>teammateMailbox.ts:453-462</code>），shutdown 和 plan approval 用 <code>requestId</code>（<code>teammateMailbox.ts:684-763</code>）。</p>
+<p><strong>执行门控</strong>：CC 的队友有完整的 permission gating。未获批准的高风险操作会被拦截，不是可选的。教学版只演示了消息流程，没有实现执行拦截。</p>
+<p><strong>通用性</strong>：教学版的一个 FSM（pending → approved | rejected）对应两种协议，这个简化完全正确。CC 的所有协议消息共用同一个 request id 关联机制。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s15_agent_teams/"><span>上一章</span><strong>s15 Agent Teams</strong></a><a class="page-link is-next" href="/s17_autonomous_agents/"><span>下一章</span><strong>s17 Autonomous Agents</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#protocolstate-请求状态"><span>04</span>ProtocolState: 请求状态</a>
+<a class="level-3" href="#四步协议流程"><span>05</span>四步协议流程</a>
+<a class="level-3" href="#dispatchmessage-按类型路由"><span>06</span>dispatchmessage: 按类型路由</a>
+<a class="level-3" href="#matchresponse-类型校验"><span>07</span>matchresponse: 类型校验</a>
+<a class="level-3" href="#统一-inbox-消费-consumeleadinbox"><span>08</span>统一 inbox 消费：consumeleadinbox</a>
+<a class="level-3" href="#队友-idle-loop-等待而不是退出"><span>09</span>队友 idle loop：等待而不是退出</a>
+<a class="level-3" href="#合起来跑"><span>10</span>合起来跑</a>
+<a class="level-2" href="#相对-s15-的变更"><span>11</span>相对 s15 的变更</a>
+<a class="level-2" href="#试一下"><span>12</span>试一下</a>
+<a class="level-2" href="#接下来"><span>13</span>接下来</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

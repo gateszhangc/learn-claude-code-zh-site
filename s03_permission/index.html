@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s03: Permission — 执行前做权限判断 · Learn Claude Code</title>
+    <meta name="description" content="先划边界，再给自由">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s03_permission/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s03_permission" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s03 / Harness 课程</p>
+        <h1>s03: Permission — 执行前做权限判断</h1>
+        <p class="lead">先划边界，再给自由。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s02_tool_use/"><span>上一章</span><strong>s02 Tool Use</strong></a><a class="page-link is-next" href="/s04_hooks/"><span>下一章</span><strong>s04 Hooks</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="is-current" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s03_permission" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s03_permission</a></p>
+        <h1 id="s03-permission-执行前做权限判断">s03: Permission — 执行前做权限判断</h1>
+<p>s01 → s02 → <code>s03</code> → <a href="/s04_hooks/" rel="noopener noreferrer">s04</a> → s05 → ... → s20</p>
+<blockquote><p><em>"工具执行前先做权限判断"</em> — 权限管线决定哪些操作需要审批。  <strong>Harness 层</strong>: 权限 — 在工具执行前加一道门。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>s02 的 Agent 有 5 个工具。file tools 受 <code>safe_path</code> 保护，但 bash 不受限制。让它"清理一下项目"，可能执行 <code>rm -rf /</code>。</p>
+<p>安全不能靠信任模型，要靠代码——在工具执行之前做判断。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s03_permission/images/permission-overview.svg" alt="Permission Overview" loading="lazy"></figure>
+<p>s02 的循环完全保留。唯一的变动在工具执行前插入 <code>check_permission()</code>——每个工具调用经过三道闸门，顺序固定：硬拒绝优先，软询问次之，都没命中就放行。</p>
+<p>三道闸门对应三种决策：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>闸门</th>
+<th>作用</th>
+<th>命中后</th>
+</tr></thead><tbody>
+<tr>
+<td>1. 拒绝列表</td>
+<td>永远禁止的操作（<code>rm -rf /</code>、<code>sudo</code>）</td>
+<td>直接拒绝，不执行</td>
+</tr>
+<tr>
+<td>2. 规则匹配</td>
+<td>取决于上下文的操作（写工作区外、<code>rm</code> 文件）</td>
+<td>交给闸门 3</td>
+</tr>
+<tr>
+<td>3. 用户审批</td>
+<td>闸门 2 命中后，暂停等用户确认</td>
+<td>用户决定允许或拒绝</td>
+</tr>
+</tbody></table></div>
+<p>三道都没命中 → 直接执行。大部分日常操作走这条路。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s03_permission/images/permission-pipeline.svg" alt="Permission Pipeline" loading="lazy"></figure>
+<p><strong>闸门 1</strong>：一张硬拒绝表，先查，命中就返回阻止信息。（教学示意：简单字符串匹配不是可靠安全机制，命令变体和 shell 展开可能绕过。CC 的做法见附录。）</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>DENY_LIST = [
+    &quot;rm -rf /&quot;, &quot;sudo&quot;, &quot;shutdown&quot;, &quot;reboot&quot;,
+    &quot;mkfs&quot;, &quot;dd if=&quot;, &quot;&gt; /dev/sda&quot;,
+]
+
+def check_deny_list(command: str) -&gt; str | None:
+    for pattern in DENY_LIST:
+        if pattern in command:
+            return f&quot;Blocked: &#x27;{pattern}&#x27; is on the deny list&quot;
+    return None</code></pre></figure>
+<p><strong>闸门 2</strong>：规则匹配——描述"什么时候需要问用户"。每条规则指定工具和检查条件。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>PERMISSION_RULES = [
+    {
+        &quot;tools&quot;: [&quot;write_file&quot;, &quot;edit_file&quot;],
+        &quot;check&quot;: lambda args: not (WORKDIR / args.get(&quot;path&quot;, &quot;&quot;)).resolve().is_relative_to(WORKDIR),
+        &quot;message&quot;: &quot;Writing outside workspace&quot;,
+    },
+    {
+        &quot;tools&quot;: [&quot;bash&quot;],
+        &quot;check&quot;: lambda args: any(kw in args.get(&quot;command&quot;, &quot;&quot;) for kw in [&quot;rm &quot;, &quot;&gt; /etc/&quot;, &quot;chmod 777&quot;]),
+        &quot;message&quot;: &quot;Potentially destructive command&quot;,
+    },
+]
+
+def check_rules(tool_name: str, args: dict) -&gt; str | None:
+    for rule in PERMISSION_RULES:
+        if tool_name in rule[&quot;tools&quot;] and rule[&quot;check&quot;](args):
+            return rule[&quot;message&quot;]
+    return None</code></pre></figure>
+<p><strong>闸门 3</strong>：规则命中后，暂停等用户输入。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def ask_user(tool_name: str, args: dict, reason: str) -&gt; str:
+    print(f&quot;\n⚠  {reason}&quot;)
+    print(f&quot;   Tool: {tool_name}({args})&quot;)
+    choice = input(&quot;   Allow? [y/N] &quot;).strip().lower()
+    return &quot;allow&quot; if choice in (&quot;y&quot;, &quot;yes&quot;) else &quot;deny&quot;</code></pre></figure>
+<p><strong>三道闸门串在一起</strong>，插在工具执行之前：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def check_permission(block) -&gt; bool:
+    # 闸门 1: 硬拒绝
+    if block.name == &quot;bash&quot;:
+        reason = check_deny_list(block.input.get(&quot;command&quot;, &quot;&quot;))
+        if reason:
+            print(f&quot;\n⛔ {reason}&quot;)
+            return False
+
+    # 闸门 2 + 3: 规则匹配 → 用户审批
+    reason = check_rules(block.name, block.input)
+    if reason:
+        decision = ask_user(block.name, block.input, reason)
+        if decision == &quot;deny&quot;:
+            return False
+
+    return True
+
+# 在 agent_loop 中——s02 的循环只加了一行：
+for block in response.content:
+    if block.type == &quot;tool_use&quot;:
+        if not check_permission(block):           # ← 新增
+            results.append({... &quot;content&quot;: &quot;Permission denied.&quot;})
+            continue
+        output = TOOL_HANDLERS[block.name](**block.input)  # s02 原有
+        results.append(...)</code></pre></figure>
+<hr class="section-rule">
+<h2 id="相对-s02-的变更">相对 s02 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s02)</th>
+<th>之后 (s03)</th>
+</tr></thead><tbody>
+<tr>
+<td>安全模型</td>
+<td>无（信任模型）</td>
+<td>三道闸门权限管线</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>check_deny_list, check_rules, ask_user, check_permission</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>直接执行所有工具</td>
+<td>执行前插入 check_permission()</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s03_permission/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Create a file called test.txt in the current directory</code>（应该直接通过）</li>
+<li><code>Delete all temporary files in /tmp</code>（bash + rm 会触发闸门 2）</li>
+<li><code>What files are in the current directory?</code>（只读，全部通过）</li>
+<li><code>Try to write a file to /etc/something</code>（写工作区外，触发闸门 2）</li>
+</ol>
+<p>观察重点：哪些操作直接通过？哪些需要你确认？哪些被直接拒绝？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>权限检查做了——但每次都在循环里硬编码 <code>check_permission()</code>。如果我想在每次工具执行前后加日志？如果想在某些操作后自动触发 git commit？这些扩展逻辑散落在 loop 里，循环很快就会膨胀。</p>
+<p>s04 Hooks → 给循环加钩子，扩展逻辑挂在钩子上，循环保持干净。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>types/permissions.ts</code>、<code>utils/permissions/permissions.ts</code>、<code>toolExecution.ts</code>、<code>utils/permissions/yoloClassifier.ts</code>、<code>tools/AgentTool/forkSubagent.ts</code> 的核查。</p></blockquote>
+<h3 id="一-permissionresult-不是-3-种-是-4-种">一、PermissionResult：不是 3 种，是 4 种</h3>
+<p>教学版的三道闸门（deny → ask → allow）和 CC 不完全对应。CC 的 <code>PermissionResult</code> 有 4 个 behavior（<code>types/permissions.ts:241-266</code>）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>behavior</th>
+<th>含义</th>
+<th>教学版对应</th>
+</tr></thead><tbody>
+<tr>
+<td><code>allow</code></td>
+<td>直接允许</td>
+<td>闸门 3 通过</td>
+</tr>
+<tr>
+<td><code>deny</code></td>
+<td>直接拒绝</td>
+<td>闸门 1 命中</td>
+</tr>
+<tr>
+<td><code>ask</code></td>
+<td>弹出对话框问用户</td>
+<td>闸门 2 命中</td>
+</tr>
+<tr>
+<td><code>passthrough</code></td>
+<td>工具不表态，交给通用管线决定</td>
+<td>教学版无</td>
+</tr>
+</tbody></table></div>
+<h3 id="二-生产版的验证阶段">二、生产版的验证阶段</h3>
+<p>CC 的工具调用不是经过三道闸门，而是经过多个阶段，分布在 <code>checkPermissionsAndCallTool()</code>（<code>toolExecution.ts:599-1745</code>）、hooks、<code>hasPermissionsToUseToolInner()</code>（<code>utils/permissions/permissions.ts:1158-1310</code>）和 classifier 逻辑里：</p>
+<ol>
+<li><strong>Zod schema 验证</strong>（<code>toolExecution.ts:614-680</code>）— 参数类型检查</li>
+<li><strong>validateInput()</strong>（<code>toolExecution.ts:682-733</code>）— 工具级语义验证</li>
+<li><strong>backfillObservableInput()</strong>（<code>toolExecution.ts:784</code>）— 补全遗留字段</li>
+<li><strong>PreToolUse hooks</strong>（<code>toolExecution.ts:800-862</code>）— 钩子可以返回 allow/deny/ask</li>
+<li><strong>resolveHookPermissionDecision()</strong>（<code>toolExecution.ts:921-931</code>）— 协调钩子+管线决策</li>
+<li><strong>hasPermissionsToUseToolInner()</strong>（<code>permissions.ts:1158-1310</code>）— 多层规则检查：</li>
+</ol>
+<ul>
+<li>整个工具被 deny rule 禁用 → <code>deny</code></li>
+<li>整个工具被 ask rule 标记 → <code>ask</code></li>
+<li><code>tool.checkPermissions()</code> 工具自己的判断</li>
+<li>工具自己返回 deny → <code>deny</code></li>
+<li><code>requiresUserInteraction()</code> → <code>ask</code></li>
+<li>内容相关的 ask 规则 → <code>ask</code>（不可绕过）</li>
+<li>安全检查违规 → <code>ask</code>（不可绕过）</li>
+<li>bypassPermissions 模式 → <code>allow</code></li>
+<li>整个工具被 allow rule 放行 → <code>allow</code></li>
+<li>passthrough → 转为 <code>ask</code></li>
+</ul>
+<h3 id="三-拒绝列表-不是一个文件-是-8-个来源">三、拒绝列表：不是一个文件，是 8 个来源</h3>
+<p>CC 没有单一的 deny list。权限规则来自 8 个来源（<code>types/permissions.ts:54-62</code>）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>来源</th>
+<th>配置位置</th>
+</tr></thead><tbody>
+<tr>
+<td><code>userSettings</code></td>
+<td><code>~/.claude/settings.json</code></td>
+</tr>
+<tr>
+<td><code>projectSettings</code></td>
+<td><code>.claude/settings.json</code></td>
+</tr>
+<tr>
+<td><code>localSettings</code></td>
+<td><code>settings.local.json</code></td>
+</tr>
+<tr>
+<td><code>flagSettings</code></td>
+<td>Feature flags</td>
+</tr>
+<tr>
+<td><code>policySettings</code></td>
+<td>企业管理策略</td>
+</tr>
+<tr>
+<td><code>cliArg</code></td>
+<td><code>--allowedTools</code> / <code>--deniedTools</code></td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>内联命令</td>
+</tr>
+<tr>
+<td><code>session</code></td>
+<td>会话内临时授权</td>
+</tr>
+</tbody></table></div>
+<p>每条规则格式：<code>{ toolName: "Bash", ruleBehavior: "deny", ruleContent: "npm publish:*" }</code>。多个来源的规则合并，高优先级来源覆盖低优先级（从低到高：user &lt; project &lt; local &lt; flag &lt; policy，加上 cliArg、command、session）。</p>
+<h3 id="四-isdestructive-是什么">四、isDestructive() 是什么</h3>
+<p>CC 中 <code>isDestructive</code>（<code>Tool.ts:405-406</code>）<strong>纯粹是 UI 展示用的</strong>——在工具列表里显示 <code>[destructive]</code> 标签。它不参与权限决策。默认所有工具都返回 <code>false</code>。只有 ExitWorktree（remove 时）和 MCP 工具（依赖 <code>annotations.destructiveHint</code>）覆写了它。</p>
+<h3 id="五-yoloclassifier-自动审批">五、YoloClassifier（自动审批）</h3>
+<p>CC 的 auto 模式下，不会每次都弹对话框。<code>classifyYoloAction</code>（<code>utils/permissions/yoloClassifier.ts:1012</code>）把工具调用 + 对话上下文发给一个分类器 LLM 判断是否安全。先尝试 acceptEdits 模式模拟（<code>permissions.ts:620-656</code>，如果 acceptEdits 允许 → 直接批准），再查安全工具白名单（<code>permissions.ts:658-686</code>），最后才调分类器。分类器连续拒绝太多次 → 回退到人工审批。</p>
+<h3 id="六-权限冒泡">六、权限冒泡</h3>
+<p>子 Agent（通过 AgentTool fork 出来的）的 <code>permissionMode</code> 设为 <code>'bubble'</code>（<code>forkSubagent.ts:50</code>）。意思是权限弹窗<strong>冒泡到父 Agent 的终端</strong>，而不是在子 Agent 里静默拒绝。Bash 分类器在这个过程中继续跑——给权限对话框显示的同时在后台判断是否可以自动批准。</p>
+<h3 id="教学版的简化是刻意的">教学版的简化是刻意的</h3>
+<ul>
+<li>多阶段管线 → 3 道闸门：理解门槛大幅降低</li>
+<li>8 个规则来源 → 1 个本地 DENY_LIST：概念量可控</li>
+<li>isDestructive → 忽略（教学版没有 UI 层，CC 里它也不参与权限决策）</li>
+<li>YoloClassifier → 省略（依赖于额外的 LLM 调用和遥测系统）</li>
+<li>权限冒泡 → 省略（s15 才涉及多 Agent）</li>
+</ul>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s02_tool_use/"><span>上一章</span><strong>s02 Tool Use</strong></a><a class="page-link is-next" href="/s04_hooks/"><span>下一章</span><strong>s04 Hooks</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-2" href="#相对-s02-的变更"><span>04</span>相对 s02 的变更</a>
+<a class="level-2" href="#试一下"><span>05</span>试一下</a>
+<a class="level-2" href="#接下来"><span>06</span>接下来</a>
+<a class="level-3" href="#一-permissionresult-不是-3-种-是-4-种"><span>07</span>一、PermissionResult：不是 3 种，是 4 种</a>
+<a class="level-3" href="#二-生产版的验证阶段"><span>08</span>二、生产版的验证阶段</a>
+<a class="level-3" href="#三-拒绝列表-不是一个文件-是-8-个来源"><span>09</span>三、拒绝列表：不是一个文件，是 8 个来源</a>
+<a class="level-3" href="#四-isdestructive-是什么"><span>10</span>四、isDestructive() 是什么</a>
+<a class="level-3" href="#五-yoloclassifier-自动审批"><span>11</span>五、YoloClassifier（自动审批）</a>
+<a class="level-3" href="#六-权限冒泡"><span>12</span>六、权限冒泡</a>
+<a class="level-3" href="#教学版的简化是刻意的"><span>13</span>教学版的简化是刻意的</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

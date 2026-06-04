@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s10: System Prompt — 运行时组装，不硬编码 · Learn Claude Code</title>
+    <meta name="description" content="prompt 是组装出来的">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s10_system_prompt/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s10_system_prompt" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s10 / Harness 课程</p>
+        <h1>s10: System Prompt — 运行时组装，不硬编码</h1>
+        <p class="lead">prompt 是组装出来的。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s09_memory/"><span>上一章</span><strong>s09 Memory</strong></a><a class="page-link is-next" href="/s11_error_recovery/"><span>下一章</span><strong>s11 Error Recovery</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="is-current" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s10_system_prompt" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s10_system_prompt</a></p>
+        <h1 id="s10-system-prompt-运行时组装-不硬编码">s10: System Prompt — 运行时组装，不硬编码</h1>
+<p>s01 → ... → s08 → s09 → <code>s10</code> → <a href="/s11_error_recovery/" rel="noopener noreferrer">s11</a> → s12 → ... → s20</p>
+<blockquote><p><em>"prompt 是组装出来的, 不是写死的"</em> — 分段 + 按需拼接 + 缓存。  <strong>Harness 层</strong>: 提示 — 运行时组装, 不硬编码。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>从 s01 到 s09，system prompt 都是一行硬编码：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>SYSTEM = f&quot;You are a coding agent at {WORKDIR}. Use tools to solve tasks.&quot;</code></pre></figure>
+<p>s01 够用，只有 bash、read、write 三个工具。但到 s09，Agent 已经有记忆、有压缩、有技能加载。prompt 该提的能力越来越多：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>SYSTEM = (
+    f&quot;You are a coding agent at {WORKDIR}. &quot;
+    &quot;Use tools to solve tasks. Act, don&#x27;t explain. &quot;
+    &quot;Before starting any multi-step task, use todo_write. &quot;
+    &quot;Skills are available via list_skills and load_skill. &quot;
+    &quot;Relevant memories are injected below when available. &quot;
+    # ... 加一个能力就多一段
+)</code></pre></figure>
+<p>三个问题：</p>
+<ol>
+<li><strong>换项目要重写整个 prompt</strong>，不知道哪些该改、哪些该留</li>
+<li><strong>修改一处可能影响全局</strong>，加一段工具描述可能跟前面的指令冲突</li>
+<li><strong>每次请求都带全部内容</strong>，即使当前对话用不到某些段落也浪费 token</li>
+</ol>
+<p>System prompt 应该是运行时根据当前状态组装的配置：哪些工具启用、哪些上下文可见、哪些记忆相关、哪些内容必须保持稳定以命中 prompt cache。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s10_system_prompt/images/system-prompt-overview.svg" alt="System Prompt Overview" loading="lazy"></figure>
+<p>s10 聚焦 prompt 组装机制。以 s08-s09 的能力为背景，但不重复实现压缩和记忆系统。核心变动：把硬编码的 <code>SYSTEM</code> 拆成独立段落（section），运行时根据真实状态按需拼接，缓存结果避免重复组装。</p>
+<p>四个 section，两种加载策略：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Section</th>
+<th>加载策略</th>
+<th>内容</th>
+<th>判断依据</th>
+</tr></thead><tbody>
+<tr>
+<td>identity</td>
+<td>始终</td>
+<td>你是谁、怎么做事</td>
+<td>始终存在</td>
+</tr>
+<tr>
+<td>tools</td>
+<td>始终</td>
+<td>可用工具列表</td>
+<td><code>enabled_tools</code></td>
+</tr>
+<tr>
+<td>workspace</td>
+<td>始终</td>
+<td>工作目录</td>
+<td>始终存在</td>
+</tr>
+<tr>
+<td>memory</td>
+<td>按需</td>
+<td>相关记忆内容</td>
+<td><code>.memory/MEMORY.md</code> 是否存在</td>
+</tr>
+</tbody></table></div>
+<p>关键设计：section 是否加载取决于真实状态（工具是否存在、文件是否存在），不是消息里的关键词。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="promptsections-分段定义">PROMPT_SECTIONS: 分段定义</h3>
+<p>把一大段字符串拆成字典，每个 key 是一个主题：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>PROMPT_SECTIONS = {
+    &quot;identity&quot;: &quot;You are a coding agent. Act, don&#x27;t explain.&quot;,
+    &quot;tools&quot;: &quot;Available tools: bash, read_file, write_file.&quot;,
+    &quot;workspace&quot;: f&quot;Working directory: {WORKDIR}&quot;,
+    &quot;memory&quot;: &quot;Relevant memories are injected below when available.&quot;,
+}</code></pre></figure>
+<p>每个 section 独立维护。修改 <code>tools</code> 不影响 <code>identity</code>，新增 <code>memory</code> 不动 <code>workspace</code>。</p>
+<h3 id="assemblesystemprompt-按需拼接">assemble_system_prompt: 按需拼接</h3>
+<p>不是所有 section 每次都需要。当前没有记忆文件，加载 memory section 只是浪费 token。根据 context 的真实状态决定加载哪些：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def assemble_system_prompt(context: dict) -&gt; str:
+    sections = []
+
+    # 始终加载
+    sections.append(PROMPT_SECTIONS[&quot;identity&quot;])
+    sections.append(PROMPT_SECTIONS[&quot;tools&quot;])
+    sections.append(PROMPT_SECTIONS[&quot;workspace&quot;])
+
+    # 按需加载 — 基于真实状态，不是关键词
+    memories = context.get(&quot;memories&quot;, &quot;&quot;)
+    if memories:
+        sections.append(f&quot;Relevant memories:\n{memories}&quot;)
+
+    return &quot;\n\n&quot;.join(sections)</code></pre></figure>
+<p>"始终加载"的是每轮都需要的：身份、工具、工作目录。"按需加载"的只在特定条件下才有用。</p>
+<p>为什么不全加载？token 有成本（system prompt 每轮计费），信息越少 LLM 越专注（无关指令是噪音）。</p>
+<h3 id="getsystemprompt-缓存避免重复拼接">get_system_prompt: 缓存避免重复拼接</h3>
+<p>上下文没变时（同一轮对话的多次 LLM 调用，context 相同），重新拼接是浪费。用确定性序列化检测变化，命中缓存直接返回：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def get_system_prompt(context: dict) -&gt; str:
+    global _last_context_key, _last_prompt
+    key = json.dumps(context, sort_keys=True, ensure_ascii=False, default=str)
+    if key == _last_context_key and _last_prompt:
+        return _last_prompt
+    _last_context_key = key
+    _last_prompt = assemble_system_prompt(context)
+    return _last_prompt</code></pre></figure>
+<p>用 <code>json.dumps</code> 而不是 <code>hash()</code>：Python 内置 <code>hash()</code> 有进程随机化，不适合做稳定 cache key，而且遇到 list/dict 会报 <code>unhashable type</code>。</p>
+<p>注意：这里的缓存只是"避免重复拼接字符串"，和 CC 的 API prompt cache 不是一回事。CC 的 prompt cache 通过 <code>SYSTEM_PROMPT_DYNAMIC_BOUNDARY</code> 分隔静态和动态部分，静态部分命中 global cache，不因动态内容变化而失效。</p>
+<h3 id="context-真实状态-不是关键词猜测">context: 真实状态，不是关键词猜测</h3>
+<p>context 反映当前运行态的真实状态：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def update_context(context: dict, messages: list) -&gt; dict:
+    memories = &quot;&quot;
+    if MEMORY_INDEX.exists():
+        content = MEMORY_INDEX.read_text().strip()
+        if content:
+            memories = content
+    return {
+        &quot;enabled_tools&quot;: list(TOOL_HANDLERS.keys()),
+        &quot;workspace&quot;: str(WORKDIR),
+        &quot;memories&quot;: memories,
+    }</code></pre></figure>
+<p><code>enabled_tools</code> 列出实际注册的工具。<code>memories</code> 检查 <code>.memory/MEMORY.md</code> 是否存在。section 加载基于这些真实状态，不在消息里搜关键词。</p>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages: list, context: dict):
+    system = get_system_prompt(context)
+    while True:
+        response = client.messages.create(
+            model=MODEL, system=system, messages=messages,
+            tools=TOOLS, max_tokens=8000)
+        # ... 工具执行 ...
+        context = update_context(context, messages)
+        system = get_system_prompt(context)</code></pre></figure>
+<p>每轮循环开头拿一次 system prompt。context 变了就重新组装，没变就返回缓存。</p>
+<hr class="section-rule">
+<h2 id="相对-s09-的变更">相对 s09 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s09)</th>
+<th>之后 (s10)</th>
+</tr></thead><tbody>
+<tr>
+<td>prompt</td>
+<td>硬编码 SYSTEM 字符串</td>
+<td>PROMPT_SECTIONS + assemble_system_prompt</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>无</td>
+<td>get_system_prompt（json.dumps 检测 + 缓存）</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>assemble_system_prompt, get_system_prompt, update_context</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>bash, read_file, write_file (3)</td>
+<td>bash, read_file, write_file (3) — 不变</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>用固定 SYSTEM</td>
+<td>用 get_system_prompt(context)</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s10_system_prompt/code.py</code></pre></figure>
+<p>观察重点：</p>
+<ol>
+<li>输出中能看到哪些 section 被加载了（<code>[assembled] sections: ...</code> 标签）</li>
+<li>连续对话时，缓存命中显示 <code>[cache hit]</code></li>
+<li>创建 <code>.memory/MEMORY.md</code> 文件后，下一轮 memory section 自动加载</li>
+</ol>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Read the file README.md</code>（观察始终加载的三个 section）</li>
+<li><code>Create a file called .memory/MEMORY.md with content "- [test](test.md) — test memory"</code>（写入记忆索引）</li>
+<li><code>Read the file code.py</code>（观察 memory section 是否出现）</li>
+</ol>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>System prompt 可以运行时组装了，但 Agent 碰到错误还是会崩。网络抖动、API 限流、输出被截断、上下文超限，这些不是 bug，是常态。</p>
+<p>s11 Error Recovery → 四条恢复路径。升级 token、压缩上下文、指数退避、切换模型。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>constants/prompts.ts</code>（914 行）、<code>constants/systemPromptSections.ts</code>（68 行）、<code>context.ts</code>（189 行）、<code>utils/api.ts</code>（718 行）、<code>utils/systemPrompt.ts</code>（123 行）、<code>bootstrap/state.ts</code> 的分析。</p></blockquote>
+<h3 id="cc-的-system-prompt-有多少-section">CC 的 system prompt 有多少 section？</h3>
+<p>数量不固定，受 feature flag、output style、KAIROS/Proactive 模式、用户类型、token 预算等影响。大致分两类：</p>
+<p><strong>静态 section</strong>（始终加载）：identity、system、doing_tasks、actions、using_tools、tone_style、output_efficiency 等。</p>
+<p><strong>动态 section</strong>（按状态加载）：session_guidance、memory、ant_model_override、env_info_simple、language、output_style、mcp_instructions、scratchpad、frc、summarize_tool_results、numeric_length_anchors、token_budget、brief 等。</p>
+<p><code>mcp_instructions</code> 是唯一的易失性 section（通过 <code>DANGEROUS_uncachedSystemPromptSection()</code> 创建），因为 MCP server 可以在轮次间连接和断开。</p>
+<h3 id="组装函数">组装函数</h3>
+<figure class="code-block"><figcaption>typescript</figcaption><pre><code>getSystemPrompt(tools, model, additionalWorkingDirs?, mcpClients?): Promise&lt;string[]&gt;</code></pre></figure>
+<p>返回 <code>string[]</code>（每个元素是一个 section），由 <code>SYSTEM_PROMPT_DYNAMIC_BOUNDARY</code> 分隔静态和动态部分。</p>
+<h3 id="cache-scope">cache scope</h3>
+<p>启用 global cache boundary 时，静态 section 合并成一个 global cache block，动态 section 不使用 global cache（<code>cacheScope: null</code>）。没有 boundary 或跳过 global cache 的路径才会走 org scope。</p>
+<p>教学版的缓存只避免重复拼接字符串。CC 的三层缓存：</p>
+<ol>
+<li><strong>lodash memoize</strong>：<code>getSystemContext</code> 和 <code>getUserContext</code> 在会话中缓存（<code>context.ts</code>）</li>
+<li><strong>section 注册缓存</strong>：<code>STATE.systemPromptSectionCache</code> 缓存动态 section 结果，<code>/clear</code> 或 <code>/compact</code> 时清除</li>
+<li><strong>API 级缓存</strong>：<code>splitSysPromptPrefix()</code>（<code>api.ts</code>）把 prompt 按 boundary 分成不同 cache scope 的块</li>
+</ol>
+<h3 id="getusercontext-vs-getsystemcontext">getUserContext vs getSystemContext</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th></th>
+<th>getSystemContext</th>
+<th>getUserContext</th>
+</tr></thead><tbody>
+<tr>
+<td>内容</td>
+<td>gitStatus、cacheBreaker</td>
+<td>CLAUDE.md 内容、currentDate</td>
+</tr>
+<tr>
+<td>注入方式</td>
+<td>追加到 system prompt 数组</td>
+<td>前置为 <code>&lt;system-reminder&gt;</code> 用户消息</td>
+</tr>
+<tr>
+<td>何时跳过</td>
+<td>自定义 system prompt 时</td>
+<td>始终运行</td>
+</tr>
+</tbody></table></div>
+<h3 id="模式如何改变-prompt">模式如何改变 prompt</h3>
+<ul>
+<li><strong>CLAUDE_CODE_SIMPLE</strong>：整个 prompt 只有 2 行</li>
+<li><strong>Proactive/KAIROS</strong>：用紧凑版 prompt 替换所有标准 section</li>
+<li><strong>Coordinator</strong>：用协调器专用 prompt 完全替换</li>
+<li><strong>Agent 模式</strong>：Agent 定义的 prompt 替换或追加到默认 prompt</li>
+</ul>
+<h3 id="总大小">总大小</h3>
+<p>标准交互模式下 system prompt 核心约 20-30KB 文本。CLAUDE_CODE_SIMPLE 约 150 字符。用户上下文（CLAUDE.md）和系统上下文（git status）在此基础上累加。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s09_memory/"><span>上一章</span><strong>s09 Memory</strong></a><a class="page-link is-next" href="/s11_error_recovery/"><span>下一章</span><strong>s11 Error Recovery</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#promptsections-分段定义"><span>04</span>PROMPTSECTIONS: 分段定义</a>
+<a class="level-3" href="#assemblesystemprompt-按需拼接"><span>05</span>assemblesystemprompt: 按需拼接</a>
+<a class="level-3" href="#getsystemprompt-缓存避免重复拼接"><span>06</span>getsystemprompt: 缓存避免重复拼接</a>
+<a class="level-3" href="#context-真实状态-不是关键词猜测"><span>07</span>context: 真实状态，不是关键词猜测</a>
+<a class="level-3" href="#合起来跑"><span>08</span>合起来跑</a>
+<a class="level-2" href="#相对-s09-的变更"><span>09</span>相对 s09 的变更</a>
+<a class="level-2" href="#试一下"><span>10</span>试一下</a>
+<a class="level-2" href="#接下来"><span>11</span>接下来</a>
+<a class="level-3" href="#cc-的-system-prompt-有多少-section"><span>12</span>CC 的 system prompt 有多少 section？</a>
+<a class="level-3" href="#组装函数"><span>13</span>组装函数</a>
+<a class="level-3" href="#cache-scope"><span>14</span>cache scope</a>
+<a class="level-3" href="#getusercontext-vs-getsystemcontext"><span>15</span>getUserContext vs getSystemContext</a>
+<a class="level-3" href="#模式如何改变-prompt"><span>16</span>模式如何改变 prompt</a>
+<a class="level-3" href="#总大小"><span>17</span>总大小</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

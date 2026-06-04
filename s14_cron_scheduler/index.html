@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s14: Cron Scheduler — 按时间表生产工作 · Learn Claude Code</title>
+    <meta name="description" content="定时触发，不需要人推">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s14_cron_scheduler/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s14_cron_scheduler" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s14 / Harness 课程</p>
+        <h1>s14: Cron Scheduler — 按时间表生产工作</h1>
+        <p class="lead">定时触发，不需要人推。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s13_background_tasks/"><span>上一章</span><strong>s13 Background Tasks</strong></a><a class="page-link is-next" href="/s15_agent_teams/"><span>下一章</span><strong>s15 Agent Teams</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="is-current" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s14_cron_scheduler" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s14_cron_scheduler</a></p>
+        <h1 id="s14-cron-scheduler-按时间表生产工作">s14: Cron Scheduler — 按时间表生产工作</h1>
+<p>s01 → ... → s12 → s13 → <code>s14</code> → <a href="/s15_agent_teams/" rel="noopener noreferrer">s15</a> → s16 → ... → s20</p>
+<blockquote><p><em>"按时间表生产工作, 调度与执行解耦"</em> — cron 调度, 持久化或会话级。  <strong>Harness 层</strong>: 调度 — 独立线程判断时间, 队列传递触发。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>闹钟不需要你盯着它才会响。你设好 7:00，到点它自己响，你在睡觉、在洗澡、在做饭，它都照响不误。</p>
+<p>s13 让 Agent 能后台执行慢操作，但所有操作仍然是你手动触发的。你说一句，Agent 动一下。"每天早上 9 点跑测试"、"每 30 分钟检查 CI 状态"，这些周期性任务不该需要人每次来推。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s14_cron_scheduler/images/cron-scheduler-overview.svg" alt="Cron Scheduler Overview" loading="lazy"></figure>
+<p>教学代码沿用 S13 的简化任务系统、后台执行和 prompt 组装；为了聚焦调度器，省略完整错误恢复、记忆和技能系统。新增：独立的 cron 调度线程，每秒检查一次，时间到了把任务塞进 <code>cron_queue</code>；再由 queue processor 在 Agent 空闲时自动交付。</p>
+<p>手动 vs 定时：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th></th>
+<th>手动触发 (s13)</th>
+<th>定时触发 (s14)</th>
+</tr></thead><tbody>
+<tr>
+<td>触发者</td>
+<td>用户输入</td>
+<td>调度线程</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>随时</td>
+<td>cron 表达式指定</td>
+</tr>
+<tr>
+<td>需要人参与</td>
+<td>是</td>
+<td>否（调度器自动入队，空闲时自动交付）</td>
+</tr>
+<tr>
+<td>持久性</td>
+<td>—</td>
+<td>durable 跨重启</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="四层模型">四层模型</h3>
+<p>Cron 调度分四层：</p>
+<ol>
+<li><strong>Scheduler</strong>：daemon 线程，每秒轮询，判断时间到了没有</li>
+<li><strong>Queue</strong>：<code>cron_queue</code>，调度线程写入已触发任务</li>
+<li><strong>Queue Processor</strong>：发现队列非空且 Agent 空闲，启动一轮 agent_loop</li>
+<li><strong>Consumer</strong>：agent_loop 从队列消费，注入到 messages</li>
+</ol>
+<p>教学版实现的是最小 queue processor：用 <code>agent_lock</code> 判断 Agent 是否空闲，空闲时自动交付定时任务。真实 CC 的 <code>useQueueProcessor.ts</code> 还会处理 UI 阻塞、队列优先级和不同消息模式。</p>
+<h3 id="cronjob-数据结构">CronJob: 数据结构</h3>
+<p>每个 cron 任务是一个 <code>CronJob</code> 对象：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>@dataclass
+class CronJob:
+    id: str
+    cron: str        # &quot;0 9 * * *&quot; (五段式 cron 表达式)
+    prompt: str      # 触发时注入给 Agent 的消息
+    recurring: bool  # True=周期性，False=一次性
+    durable: bool    # True=写磁盘，跨会话保留</code></pre></figure>
+<p>Cron 表达式，五段式，Unix 用了 50 年：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>分钟  小时  日  月  星期
+  *    *   *   *   *      每分钟
+  0    9   *   *   *      每天早上 9:00
+ */5    *   *   *   *      每 5 分钟
+  0    9   *   *  1-5     工作日早上 9:00</code></pre></figure>
+<p>支持 <code>*</code>、<code>*/N</code>、<code>N</code>、<code>N-M</code>、<code>N,M,...</code>。</p>
+<h3 id="cronmatches-五段式匹配">cron_matches: 五段式匹配</h3>
+<p>标准 cron 语义：分钟、小时、月必须全部匹配；日（DOM）和星期（DOW）同时被约束时任一匹配即可（OR）：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def cron_matches(cron_expr: str, dt: datetime) -&gt; bool:
+    fields = cron_expr.strip().split()
+    if len(fields) != 5:
+        return False
+    minute, hour, dom, month, dow = fields
+    dow_val = (dt.weekday() + 1) % 7  # Python Monday=0 → cron Sunday=0
+
+    m = _cron_field_matches(minute, dt.minute)
+    h = _cron_field_matches(hour, dt.hour)
+    dom_ok = _cron_field_matches(dom, dt.day)
+    month_ok = _cron_field_matches(month, dt.month)
+    dow_ok = _cron_field_matches(dow, dow_val)
+
+    if not (m and h and month_ok):
+        return False
+    # DOM and DOW: both constrained → either matching is enough (OR)
+    dom_unconstrained = dom == &quot;*&quot;
+    dow_unconstrained = dow == &quot;*&quot;
+    if dom_unconstrained and dow_unconstrained:
+        return True
+    if dom_unconstrained:
+        return dow_ok
+    if dow_unconstrained:
+        return dom_ok
+    return dom_ok or dow_ok</code></pre></figure>
+<h3 id="独立调度线程-每秒轮询">独立调度线程: 每秒轮询</h3>
+<p>调度器跑在独立的 daemon 线程里，不依赖 agent_loop 是否在执行。单个 job 异常不会杀掉整个线程：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def cron_scheduler_loop():
+    while True:
+        time.sleep(1)
+        now = datetime.now()
+        minute_marker = now.strftime(&quot;%Y-%m-%d %H:%M&quot;)
+        with cron_lock:
+            for job in list(scheduled_jobs.values()):
+                try:
+                    if cron_matches(job.cron, now):
+                        if _last_fired.get(job.id) != minute_marker:
+                            cron_queue.append(job)
+                            _last_fired[job.id] = minute_marker
+                        if not job.recurring:
+                            scheduled_jobs.pop(job.id, None)
+                            if job.durable:
+                                save_durable_jobs()
+                except Exception as e:
+                    print(f&quot;[cron error] {job.id}: {e}&quot;)</code></pre></figure>
+<p>关键设计：</p>
+<ul>
+<li><strong>独立于 agent_loop</strong>：即使 agent_loop 没在跑，调度器也在后台检查时间</li>
+<li><strong>date-aware minute_marker</strong>：用 <code>"YYYY-MM-DD HH:MM"</code> 防止同一分钟重复触发，同时不会在第二天跳过</li>
+<li><strong>单 job try/except</strong>：一个坏 job 不会拖垮整个调度线程</li>
+<li><strong>一次性任务</strong>：触发后自动从 scheduled_jobs 里删除</li>
+</ul>
+<h3 id="queue-processor-agentloop-交付端">Queue Processor + agent_loop: 交付端</h3>
+<p>queue processor 不检查时间，只负责在队列有任务且 Agent 空闲时拉起一轮执行：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def queue_processor_loop():
+    while True:
+        time.sleep(0.2)
+        if not has_cron_queue():
+            continue
+        if not agent_lock.acquire(blocking=False):
+            continue
+        try:
+            if has_cron_queue():
+                run_agent_turn_locked()
+        finally:
+            agent_lock.release()</code></pre></figure>
+<p>agent_loop 也不负责检查时间，它只从 <code>cron_queue</code> 里拿已触发的任务，注入到 messages 里：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>fired = consume_cron_queue()
+for job in fired:
+    messages.append({&quot;role&quot;: &quot;user&quot;,
+                     &quot;content&quot;: f&quot;[Scheduled] {job.prompt}&quot;})</code></pre></figure>
+<p>生产者（调度线程）、交付者（queue processor）和消费者（agent_loop）通过 <code>cron_queue</code>、<code>cron_lock</code>、<code>agent_lock</code> 解耦。</p>
+<h3 id="校验-防止坏-cron-杀掉调度器">校验：防止坏 cron 杀掉调度器</h3>
+<p><code>schedule_job</code> 在注册前校验 cron 表达式，非法的直接返回错误：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def schedule_job(cron, prompt, recurring=True, durable=True):
+    err = validate_cron(cron)
+    if err:
+        return err
+    # ... register job</code></pre></figure>
+<p>从磁盘加载 durable job 时也会跳过非法表达式，避免单个坏任务拖垮启动。</p>
+<h3 id="durable-vs-session-only">Durable vs Session-only</h3>
+<ul>
+<li><strong>Durable</strong>：任务定义写进 <code>.scheduled_tasks.json</code>。Agent 重启后加载文件，恢复任务。</li>
+<li><strong>Session-only</strong>：只在内存里。Agent 关闭就没了。</li>
+</ul>
+<blockquote><p><strong>重要前提</strong>：cron 调度器必须在 Agent 进程内跑。进程关闭，调度也停。Durable 只意味着任务定义跨重启保留，下次 Agent 启动时调度器才会发现"该触发了"并触发。如果需要"即使应用关闭也能定时跑"，请用系统 crontab 或 systemd timer。</p></blockquote>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>1. 启动时：
+   load_durable_jobs() → 从 .scheduled_tasks.json 恢复持久化任务
+   Thread(cron_scheduler_loop, daemon=True).start() → 调度线程开始轮询
+   Thread(queue_processor_loop, daemon=True).start() → 队列处理器等待交付
+
+2. 注册任务：
+   schedule_cron(cron=&quot;*/2 * * * *&quot;, prompt=&quot;run date&quot;, durable=True)
+   → CronJob 写入 scheduled_jobs + .scheduled_tasks.json
+
+3. 每 2 分钟：
+   调度线程检查 → cron_matches 返回 True → cron_queue.append(job)
+   → queue processor 发现 Agent 空闲 → agent_loop consume_cron_queue
+   → 注入 &quot;[Scheduled] run date&quot;
+   → LLM 收到消息，执行 date 命令
+
+4. 关闭进程：
+   调度线程跟着停（daemon=True）
+   .scheduled_tasks.json 还在磁盘上
+   下次启动 → load_durable_jobs → 任务恢复</code></pre></figure>
+<hr class="section-rule">
+<h2 id="相对-s13-的变更">相对 s13 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s13)</th>
+<th>之后 (s14)</th>
+</tr></thead><tbody>
+<tr>
+<td>触发方式</td>
+<td>用户手动触发</td>
+<td>调度线程自动入队</td>
+</tr>
+<tr>
+<td>新类型</td>
+<td>—</td>
+<td>CronJob dataclass (id, cron, prompt, recurring, durable)</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>cron_matches, validate_cron, schedule_job, cancel_job, cron_scheduler_loop, queue_processor_loop</td>
+</tr>
+<tr>
+<td>新存储</td>
+<td>—</td>
+<td>.scheduled_tasks.json (durable) + 内存 (session-only)</td>
+</tr>
+<tr>
+<td>线程</td>
+<td>后台执行线程</td>
+<td>+ 调度线程 (daemon, 1s 轮询) + queue processor 线程</td>
+</tr>
+<tr>
+<td>队列</td>
+<td>background_results</td>
+<td>+ cron_queue (调度线程写, queue processor 交付, agent_loop 消费)</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>8 (s12/s13)</td>
+<td>+ schedule_cron, list_crons, cancel_cron (11)</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s14_cron_scheduler/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Schedule a task to print the current date every 2 minutes</code></li>
+<li><code>List all cron jobs</code></li>
+<li><code>Create a one-shot reminder in 1 minute to check the build status</code></li>
+<li><code>Cancel the recurring job and verify with list_crons</code></li>
+</ol>
+<p>观察重点：调度线程是否在独立运行？cron 任务是否在正确的时间点触发？不输入新 prompt 时，是否也出现 <code>[queue processor]</code> 并自动执行？durable job 是否写入了 <code>.scheduled_tasks.json</code>？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>一个 Agent 能做很多事了，能计划、能压缩、能后台、能定时。但有些任务太大了，不是一个 Agent 能搞定的。</p>
+<p>"重构整个后端"，把认证模块、数据库层、API 路由、测试全部翻新。一个 Agent 的注意力是有限的，这需要一个团队。</p>
+<p>s15 Agent Teams → 一个 Agent 不够，组队吧。持久队友 + 异步收件箱。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>CronCreateTool.ts</code>、<code>cronScheduler.ts</code>、<code>cron.ts</code>、<code>cronTasks.ts</code>、<code>cronTasksLock.ts</code>、<code>useScheduledTasks.ts</code>（139 行）的完整分析。</p></blockquote>
+<h3 id="一-三个-cron-工具">一、三个 Cron 工具</h3>
+<p>CC 暴露了三个 cron 工具给模型：<code>CronCreate</code>、<code>CronDelete</code>、<code>CronList</code>。全部由编译时门控 <code>feature('AGENT_TRIGGERS')</code> 和运行时 GrowthBook 标志 <code>tengu_kairos_cron</code> 控制。还有一个 <code>CLAUDE_CODE_DISABLE_CRON</code> 环境变量做本地覆盖。</p>
+<h3 id="二-存储-claude-scheduledtasks-json">二、存储：<code>.claude/scheduled_tasks.json</code></h3>
+<figure class="code-block"><figcaption>json</figcaption><pre><code>{ &quot;tasks&quot;: [{ &quot;id&quot;: &quot;abc12345&quot;, &quot;cron&quot;: &quot;0 9 * * *&quot;, &quot;prompt&quot;: &quot;...&quot;, &quot;recurring&quot;: true, &quot;durable&quot;: true, &quot;createdAt&quot;: 1714567890000 }] }</code></pre></figure>
+<p>Durable 任务写磁盘；session-only 任务存于 <code>STATE.sessionCronTasks</code> 内存数组（进程重启丢失）。还有一个 <code>.scheduled_tasks.lock</code> 文件防止同项目的多个 session 重复触发。</p>
+<h3 id="三-调度器-1-秒轮询">三、调度器：1 秒轮询</h3>
+<p><code>cronScheduler.ts</code> 每秒检查一次（<code>CHECK_INTERVAL_MS = 1000</code>）。谁持有锁谁触发文件任务；所有 session 都触发仅 session 任务。还有一个 <code>chokidar</code> 文件观察者监视 <code>scheduled_tasks.json</code> 变更。</p>
+<h3 id="四-cron-表达式-标准-5-字段">四、Cron 表达式：标准 5 字段</h3>
+<p>分钟 小时 日 月 星期。支持 <code>*</code>、<code>*/N</code>、<code>N</code>、<code>N-M</code>、<code>N-M/S</code>、<code>N,M,...</code>。不支持 <code>L</code>、<code>W</code>、<code>?</code>。所有时间以本地时区解释。Day-of-month 和 day-of-week 同时约束时用 OR 语义。</p>
+<h3 id="五-抖动-防惊群效应">五、抖动（防惊群效应）</h3>
+<ul>
+<li>重复性任务：触发延迟最多可达期间的 10%（上限 15 分钟），基于任务 ID 的确定性哈希</li>
+<li>一次性任务：当触发时间落在 <code>:00</code> 或 <code>:30</code> 时，最多提前 90 秒触发</li>
+<li>抖动配置可通过 GrowthBook 实时调整，60 秒刷新一次</li>
+</ul>
+<h3 id="六-自动过期">六、自动过期</h3>
+<p>重复性任务 7 天后自动过期（可配置，上限 30 天）。过期前最后一次触发，触发后自动删除。</p>
+<h3 id="七-作业数上限">七、作业数上限</h3>
+<p><code>MAX_JOBS = 50</code>（<code>CronCreateTool.ts:25</code>）。超限时返回错误："Too many scheduled jobs (max 50). Cancel one first."</p>
+<h3 id="八-触发注入">八、触发注入</h3>
+<p>触发后通过 <code>enqueuePendingNotification()</code> 以 <code>priority: 'later'</code> 入队命令队列。标记 <code>workload: WORKLOAD_CRON</code>，API 在容量紧张时以更低的 QoS 为 cron 发起的请求服务。</p>
+<h3 id="九-queue-processor-自动交付">九、Queue Processor：自动交付</h3>
+<p>真实 CC 通过 <code>useQueueProcessor.ts:48-60</code> 在无 query、无阻塞 UI、队列非空时自动触发处理。<code>queueProcessor.ts:52-87</code> 按队列优先级把命令交给 <code>handlePromptSubmit()</code>。教学版用 <code>queue_processor_loop</code> 保留核心行为：队列有任务且 Agent 空闲时，自动启动一轮 agent_loop。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s13_background_tasks/"><span>上一章</span><strong>s13 Background Tasks</strong></a><a class="page-link is-next" href="/s15_agent_teams/"><span>下一章</span><strong>s15 Agent Teams</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#四层模型"><span>04</span>四层模型</a>
+<a class="level-3" href="#cronjob-数据结构"><span>05</span>CronJob: 数据结构</a>
+<a class="level-3" href="#cronmatches-五段式匹配"><span>06</span>cronmatches: 五段式匹配</a>
+<a class="level-3" href="#独立调度线程-每秒轮询"><span>07</span>独立调度线程: 每秒轮询</a>
+<a class="level-3" href="#queue-processor-agentloop-交付端"><span>08</span>Queue Processor + agentloop: 交付端</a>
+<a class="level-3" href="#校验-防止坏-cron-杀掉调度器"><span>09</span>校验：防止坏 cron 杀掉调度器</a>
+<a class="level-3" href="#durable-vs-session-only"><span>10</span>Durable vs Session-only</a>
+<a class="level-3" href="#合起来跑"><span>11</span>合起来跑</a>
+<a class="level-2" href="#相对-s13-的变更"><span>12</span>相对 s13 的变更</a>
+<a class="level-2" href="#试一下"><span>13</span>试一下</a>
+<a class="level-2" href="#接下来"><span>14</span>接下来</a>
+<a class="level-3" href="#一-三个-cron-工具"><span>15</span>一、三个 Cron 工具</a>
+<a class="level-3" href="#二-存储-claude-scheduledtasks-json"><span>16</span>二、存储：.claude/scheduledtasks.json</a>
+<a class="level-3" href="#三-调度器-1-秒轮询"><span>17</span>三、调度器：1 秒轮询</a>
+<a class="level-3" href="#四-cron-表达式-标准-5-字段"><span>18</span>四、Cron 表达式：标准 5 字段</a>
+<a class="level-3" href="#五-抖动-防惊群效应"><span>19</span>五、抖动（防惊群效应）</a>
+<a class="level-3" href="#六-自动过期"><span>20</span>六、自动过期</a>
+<a class="level-3" href="#七-作业数上限"><span>21</span>七、作业数上限</a>
+<a class="level-3" href="#八-触发注入"><span>22</span>八、触发注入</a>
+<a class="level-3" href="#九-queue-processor-自动交付"><span>23</span>九、Queue Processor：自动交付</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

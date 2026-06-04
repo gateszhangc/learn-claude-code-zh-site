@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s11: Error Recovery — 错误不是结束，是重试的开始 · Learn Claude Code</title>
+    <meta name="description" content="错误是重试的起点">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s11_error_recovery/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s11_error_recovery" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s11 / Harness 课程</p>
+        <h1>s11: Error Recovery — 错误不是结束，是重试的开始</h1>
+        <p class="lead">错误是重试的起点。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s10_system_prompt/"><span>上一章</span><strong>s10 System Prompt</strong></a><a class="page-link is-next" href="/s12_task_system/"><span>下一章</span><strong>s12 Task System</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="is-current" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s11_error_recovery" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s11_error_recovery</a></p>
+        <h1 id="s11-error-recovery-错误不是结束-是重试的开始">s11: Error Recovery — 错误不是结束，是重试的开始</h1>
+<p>s01 → ... → s09 → s10 → <code>s11</code> → <a href="/s12_task_system/" rel="noopener noreferrer">s12</a> → s13 → ... → s20</p>
+<blockquote><p><em>"错误不是终点, 是重试的起点"</em> — 升级 token、压缩上下文、切换模型。  <strong>Harness 层</strong>: 韧性 — 主循环遇到错误时分类并恢复。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>Agent 跑着跑着报错了：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>Error: 529 overloaded</code></pre></figure>
+<p>Agent 崩溃了。它没有重试，没有换模型，没有减少上下文——直接崩溃。</p>
+<p>生产环境中 API 错误是常态。三种最常见的故障模式：<strong>输出被截断</strong>（模型话说一半 token 用完了）、<strong>上下文超限</strong>（压缩后还是太长）、<strong>临时故障</strong>（429 限流 / 529 过载）。一个不处理错误的 Agent 就像一个一碰就熄火的车。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s11_error_recovery/images/error-recovery-overview.svg" alt="Error Recovery Overview" loading="lazy"></figure>
+<p>s10 的循环、prompt 组装全部保留。唯一的变动：LLM 调用包裹在 try/except 里，根据错误类型走不同的恢复路径。恢复后 <code>continue</code> 回到循环开头重新调用 LLM。</p>
+<p>三种最常见的恢复模式（教学版只处理 429/529；真实系统还覆盖连接错误、超时、云厂商认证缓存等。CC 实际有 13+ reason code，其余见 Deep dive）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>模式</th>
+<th>触发</th>
+<th>恢复动作</th>
+</tr></thead><tbody>
+<tr>
+<td>输出截断</td>
+<td><code>max_tokens</code></td>
+<td>升级 8K→64K / 续写提示</td>
+</tr>
+<tr>
+<td>上下文超限</td>
+<td><code>prompt_too_long</code></td>
+<td>reactive compact → 重试</td>
+</tr>
+<tr>
+<td>临时故障</td>
+<td>429 / 529</td>
+<td>指数退避 + 抖动，连续 529 可切换备用模型</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="路径-1-输出被截断">路径 1: 输出被截断</h3>
+<p>模型话说一半，<code>max_tokens</code> 用完了。默认 8000 token 不够它输出完整回答。</p>
+<p>第一次发生时，直接把 <code>max_tokens</code> 从 8K 升级到 64K（8 倍空间），重试同一请求——此时不追加截断输出到 messages，保持原始请求不变。如果 64K 还是不够，才保存截断输出并注入续写提示让模型接着刚才的话继续说，最多 3 次：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>if response.stop_reason == &quot;max_tokens&quot;:
+    # First escalation: don&#x27;t append truncated output, retry same request
+    if not state.has_escalated:
+        max_tokens = ESCALATED_MAX_TOKENS
+        state.has_escalated = True
+        continue  # messages unchanged, same request with more tokens
+    # 64K still truncated: save output + continuation prompt
+    messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+    if state.recovery_count &lt; MAX_RECOVERY_RETRIES:
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;:
+            &quot;Output token limit hit. Resume directly — &quot;
+            &quot;no apology, no recap. Pick up mid-thought.&quot;})
+        state.recovery_count += 1
+        continue
+    return  # still truncated after 3 continuations
+# Normal: append after max_tokens check
+messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})</code></pre></figure>
+<p>升级只有一次机会，续写最多 3 次。超过就退出——继续续写也不会有实质产出。</p>
+<h3 id="路径-2-上下文超限">路径 2: 上下文超限</h3>
+<p>LLM 说"你的上下文太长了"（<code>prompt_too_long</code>）。s08 的四层压缩全跑过了，还是超。</p>
+<p>触发 reactive compact——比 auto compact 更激进。教学版只保留最后 5 条消息模拟压缩效果；真实实现会调用 LLM 生成 compact 摘要再重试。压缩后重试。但如果压缩过一次还是超限，只能退出——再压缩也不会变小：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>except PromptTooLongError:
+    if not state.has_attempted_reactive_compact:
+        messages[:] = reactive_compact(messages)
+        state.has_attempted_reactive_compact = True
+        continue
+    return  # 压缩过了还是超限，只能退出</code></pre></figure>
+<h3 id="路径-3-临时故障">路径 3: 临时故障</h3>
+<p>网络抖动、429 限流、529 过载——这些不是 bug，是分布式系统的常态。</p>
+<p>429 和 529 统一走指数退避 + 抖动：第一次等 0.5 秒，第二次等 1 秒，第三次等 2 秒，最多 10 次。加随机抖动让并发请求不在同一时刻重试。连续 3 次 529 过载 → 切换到备用模型（若配置了 <code>FALLBACK_MODEL_ID</code> 环境变量）：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def retry_delay(attempt, retry_after=None):
+    if retry_after:
+        return retry_after
+    base = min(500 * (2 ** attempt), 32000) / 1000
+    return base + random.uniform(0, base * 0.25)
+
+def with_retry(fn, state, max_retries=10):
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except (RateLimitError, OverloadedError):
+            delay = retry_delay(attempt)
+            time.sleep(delay)
+            if is_overloaded:
+                state.consecutive_529 += 1
+                if state.consecutive_529 &gt;= 3 and FALLBACK_MODEL:
+                    state.current_model = FALLBACK_MODEL
+    raise MaxRetriesExceeded()</code></pre></figure>
+<p>退避公式：<code>min(500 × 2^attempt, 32000) + random(0~25%)</code>。如果服务器返回 <code>Retry-After</code> header，优先用那个值。</p>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages, context):
+    system = get_system_prompt(context)
+    state = RecoveryState()
+    max_tokens = 8000
+
+    while True:
+        try:
+            response = with_retry(
+                lambda: client.messages.create(
+                    model=state.current_model, system=system,
+                    messages=messages, tools=TOOLS,
+                    max_tokens=max_tokens),
+                state)
+        except Exception as e:
+            if is_prompt_too_long_error(e):
+                if not state.has_attempted_reactive_compact:
+                    messages[:] = reactive_compact(messages)
+                    state.has_attempted_reactive_compact = True
+                    continue
+                return
+            log_error(e)
+            return
+
+        # max_tokens check BEFORE appending to messages
+        if response.stop_reason == &quot;max_tokens&quot;:
+            if not state.has_escalated:
+                max_tokens = 64000
+                state.has_escalated = True
+                continue  # retry same request, messages unchanged
+            # save truncated output + continuation prompt
+            messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+            messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: CONTINUATION_PROMPT})
+            continue
+        # Normal completion
+        messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+
+        if response.stop_reason != &quot;tool_use&quot;:
+            return
+        # ... tool execution ...</code></pre></figure>
+<p>外层 try/except 捕获 API 异常（prompt_too_long 等），<code>with_retry</code> 处理瞬态错误（429/529），<code>stop_reason</code> 检查处理截断。三种恢复机制各管各的错误类型。</p>
+<hr class="section-rule">
+<h2 id="相对-s10-的变更">相对 s10 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s10)</th>
+<th>之后 (s11)</th>
+</tr></thead><tbody>
+<tr>
+<td>错误处理</td>
+<td>无（一碰就崩溃）</td>
+<td>三种恢复模式 + 指数退避</td>
+</tr>
+<tr>
+<td>新常量</td>
+<td>—</td>
+<td>ESCALATED_MAX_TOKENS=64000, MAX_RETRIES=10, BASE_DELAY_MS=500, FALLBACK_MODEL</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>with_retry, retry_delay, reactive_compact, is_prompt_too_long_error, RecoveryState</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>bash, read_file, write_file (3)</td>
+<td>bash, read_file, write_file (3) — 不变</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>裸调用 LLM</td>
+<td>try/except 包裹 + continue 重试</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s11_error_recovery/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li>让 Agent 生成一段很长的代码，观察截断后是否自动续写（看 <code>[max_tokens] escalating</code> 日志）</li>
+<li>连续读取大量文件撑大上下文，观察 reactive compact</li>
+<li>如果遇到 429/529，观察指数退避的日志输出</li>
+</ol>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>Agent 现在能在错误中自动恢复了。但它处理的任务仍然是"一次性"的——你给它一个任务，它做完，结束。</p>
+<p>能不能让 Agent 管理一个<strong>任务列表</strong>——有依赖关系、持久化到磁盘、跨会话能恢复？TODO 列表不是任务系统。</p>
+<p>s12 Task System → 任务是有依赖、有状态、持久化的图。这是多 Agent 协作的基础。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>query.ts</code>（1729 行）、<code>services/api/withRetry.ts</code>（822 行）、<code>query/tokenBudget.ts</code>（93 行）、<code>utils/tokenBudget.ts</code>（73 行）的分析。</p></blockquote>
+<h3 id="一-十几种-reason-transition-不只是-3-条">一、十几种 reason/transition（不只是 3 条）</h3>
+<p>教学版讲了 3 种最常见的恢复模式。CC 实际有十几种 reason/transition，每轮 LLM 调用后都会判断：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>reason/transition</th>
+<th>教学版对应</th>
+<th>CC 行为</th>
+</tr></thead><tbody>
+<tr>
+<td><code>completed</code></td>
+<td>正常完成</td>
+<td>返回结果</td>
+</tr>
+<tr>
+<td><code>next_turn</code></td>
+<td>正常工具调用</td>
+<td>继续下一轮工具执行</td>
+</tr>
+<tr>
+<td><code>max_output_tokens_escalate</code></td>
+<td>路径 1</td>
+<td>8K→64K 升级</td>
+</tr>
+<tr>
+<td><code>max_output_tokens_recovery</code></td>
+<td>路径 1 续写</td>
+<td>续写提示（最多 3 次）</td>
+</tr>
+<tr>
+<td><code>reactive_compact_retry</code></td>
+<td>路径 2</td>
+<td>reactive compact → 重试</td>
+</tr>
+<tr>
+<td><code>prompt_too_long</code></td>
+<td>路径 2</td>
+<td>同上</td>
+</tr>
+<tr>
+<td><code>collapse_drain_retry</code></td>
+<td>未展开</td>
+<td>context collapse 先提交暂存</td>
+</tr>
+<tr>
+<td><code>model_error</code></td>
+<td>未展开</td>
+<td>重试</td>
+</tr>
+<tr>
+<td><code>image_error</code></td>
+<td>未展开</td>
+<td><code>ImageSizeError</code> / <code>ImageResizeError</code> 专门处理</td>
+</tr>
+<tr>
+<td><code>aborted_streaming</code></td>
+<td>未展开</td>
+<td>流式中止恢复</td>
+</tr>
+<tr>
+<td><code>aborted_tools</code></td>
+<td>未展开</td>
+<td>工具中止</td>
+</tr>
+<tr>
+<td><code>stop_hook_blocking</code></td>
+<td>未展开</td>
+<td>注入 blocking error → 模型自纠</td>
+</tr>
+<tr>
+<td><code>stop_hook_prevented</code></td>
+<td>未展开</td>
+<td>hooks 阻止</td>
+</tr>
+<tr>
+<td><code>hook_stopped</code></td>
+<td>未展开</td>
+<td>hook 停止执行</td>
+</tr>
+<tr>
+<td><code>token_budget_continuation</code></td>
+<td>未展开</td>
+<td>token 用量 &lt; 90% 时继续</td>
+</tr>
+<tr>
+<td><code>blocking_limit</code></td>
+<td>未展开</td>
+<td>阻塞限制</td>
+</tr>
+<tr>
+<td><code>max_turns</code></td>
+<td>未展开</td>
+<td>达到最大轮次</td>
+</tr>
+</tbody></table></div>
+<p>教学版只展开了前 5 种（最常见的），其余各有专门处理逻辑。</p>
+<h3 id="二-指数退避的精确公式">二、指数退避的精确公式</h3>
+<p>CC 的退避延迟（<code>withRetry.ts:530-548</code>）：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>delay = min(500 × 2^(attempt-1), 32000) + random(0~25%)</code></pre></figure>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>尝试</th>
+<th>基础延迟</th>
+<th>+ 抖动</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>500ms</td>
+<td>0-125ms</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1000ms</td>
+<td>0-250ms</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4000ms</td>
+<td>0-1000ms</td>
+</tr>
+<tr>
+<td>7+</td>
+<td>32000ms（上限）</td>
+<td>0-8000ms</td>
+</tr>
+</tbody></table></div>
+<p>如果服务器返回 <code>Retry-After</code> header，优先用那个值。</p>
+<h3 id="三-continuation-提示原文">三、CONTINUATION 提示原文</h3>
+<p>CC 的续写提示（<code>query.ts:1225-1227</code>）：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>Output token limit hit. Resume directly — no apology, no recap of what
+you were doing. Pick up mid-thought if that is where the cut happened.
+Break remaining work into smaller pieces.</code></pre></figure>
+<p>Token budget 的 nudge 提示（<code>tokenBudget.ts:72</code>）：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>Stopped at {pct}% of token target. Keep working — do not summarize.</code></pre></figure>
+<h3 id="四-流式错误处理">四、流式错误处理</h3>
+<p>CC 的流式路径中，可恢复的错误（413、max_tokens、media error）在 streaming 期间<strong>被暂扣不展示</strong>（<code>query.ts:788-822</code>）——SDK 消费者看不到，只有恢复逻辑能看到。等 streaming 结束后才判断是否需要恢复。</p>
+<h3 id="五-529-fallback-model-切换">五、529 → Fallback Model 切换</h3>
+<p>连续 3 次 529 过载错误后（<code>MAX_529_RETRIES = 3</code>），CC 自动切换到 fallback model（如 Opus → Sonnet）。切换时清除所有 pending 消息和 tool 结果，给用户展示 "Switched to {model} due to high demand"。</p>
+<h3 id="六-diminishing-returns-检测">六、Diminishing Returns 检测</h3>
+<p>Token budget 的"继续"不是无限的。当连续 3 次 continuation 且 token 增量 &lt; 500 时，系统判断"继续也没有实质性产出"，停止 continuation（<code>tokenBudget.ts:60-62</code>）。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s10_system_prompt/"><span>上一章</span><strong>s10 System Prompt</strong></a><a class="page-link is-next" href="/s12_task_system/"><span>下一章</span><strong>s12 Task System</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#路径-1-输出被截断"><span>04</span>路径 1: 输出被截断</a>
+<a class="level-3" href="#路径-2-上下文超限"><span>05</span>路径 2: 上下文超限</a>
+<a class="level-3" href="#路径-3-临时故障"><span>06</span>路径 3: 临时故障</a>
+<a class="level-3" href="#合起来跑"><span>07</span>合起来跑</a>
+<a class="level-2" href="#相对-s10-的变更"><span>08</span>相对 s10 的变更</a>
+<a class="level-2" href="#试一下"><span>09</span>试一下</a>
+<a class="level-2" href="#接下来"><span>10</span>接下来</a>
+<a class="level-3" href="#一-十几种-reason-transition-不只是-3-条"><span>11</span>一、十几种 reason/transition（不只是 3 条）</a>
+<a class="level-3" href="#二-指数退避的精确公式"><span>12</span>二、指数退避的精确公式</a>
+<a class="level-3" href="#三-continuation-提示原文"><span>13</span>三、CONTINUATION 提示原文</a>
+<a class="level-3" href="#四-流式错误处理"><span>14</span>四、流式错误处理</a>
+<a class="level-3" href="#五-529-fallback-model-切换"><span>15</span>五、529 → Fallback Model 切换</a>
+<a class="level-3" href="#六-diminishing-returns-检测"><span>16</span>六、Diminishing Returns 检测</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

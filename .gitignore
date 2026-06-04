@@ -5,6 +5,8 @@ data/
 !data/
 data/*
 !data/readme-zh.md
+!data/chapters/
+!data/chapters/*.md
 templates/
 node_modules/
 test-results/

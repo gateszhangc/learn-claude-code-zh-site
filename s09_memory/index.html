@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s09: Memory — 压缩会丢细节，要有一层不丢的 · Learn Claude Code</title>
+    <meta name="description" content="记住该记的，忘掉该忘的">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s09_memory/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s09_memory" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s09 / Harness 课程</p>
+        <h1>s09: Memory — 压缩会丢细节，要有一层不丢的</h1>
+        <p class="lead">记住该记的，忘掉该忘的。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s08_context_compact/"><span>上一章</span><strong>s08 Context Compact</strong></a><a class="page-link is-next" href="/s10_system_prompt/"><span>下一章</span><strong>s10 System Prompt</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="is-current" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s09_memory" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s09_memory</a></p>
+        <h1 id="s09-memory-压缩会丢细节-要有一层不丢的">s09: Memory — 压缩会丢细节，要有一层不丢的</h1>
+<p>s01 → ... → s07 → s08 → <code>s09</code> → <a href="/s10_system_prompt/" rel="noopener noreferrer">s10</a> → s11 → ... → s20</p>
+<blockquote><p><em>"压缩会丢细节, 要有一层不丢的"</em> — 文件仓库 + 索引 + 按需加载，跨压缩、跨会话。  <strong>Harness 层</strong>: 记忆 — 跨压缩、跨会话的知识积累。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>s08 的 autoCompact 会把当前目标、剩余工作、用户约束写进摘要，但细节会丢失："用 tab 缩进不要用空格"可能被简化成"用户有代码风格偏好"。而且新开一个会话，连摘要也没了。</p>
+<p>LLM 没有持久状态，所有信息都在上下文窗口里。上下文满了要压缩，压缩就有损。需要一层不参与压缩、跨会话保留的存储。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s09_memory/images/memory-overview.svg" alt="Memory Overview" loading="lazy"></figure>
+<p>s08 的压缩管线保留，聚焦记忆。存储选文件系统：<code>.memory/</code> 目录下，每个记忆一个 <code>.md</code> 文件，带 YAML frontmatter（<code>name</code> / <code>description</code> / <code>type</code>）。文件多了需要索引：<code>MEMORY.md</code> 一行一个链接，注入 SYSTEM。</p>
+<p>关键设计：索引常驻 SYSTEM prompt（可被 prompt cache 缓存），文件内容按需注入到当前 user turn（按 filename/description 匹配当前对话，不破坏 cache）。写入由每轮结束后的提取器完成：用户显式说"记住"或表达稳定偏好时，提取器会保存为记忆。文件积累多了，定期整理去重。</p>
+<p>四类记忆，各有用途：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>类型</th>
+<th>回答什么</th>
+<th>示例</th>
+</tr></thead><tbody>
+<tr>
+<td>user</td>
+<td>你是谁</td>
+<td>"用 tab 不用空格"</td>
+</tr>
+<tr>
+<td>feedback</td>
+<td>怎么做事</td>
+<td>"别 mock 数据库"</td>
+</tr>
+<tr>
+<td>project</td>
+<td>正在发生什么</td>
+<td>"auth 重写是合规驱动"</td>
+</tr>
+<tr>
+<td>reference</td>
+<td>东西在哪找</td>
+<td>"pipeline bug 在 Linear INGEST"</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s09_memory/images/memory-subsystems.svg" alt="Memory Subsystems" loading="lazy"></figure>
+<h3 id="存储-markdown-文件-索引">存储：Markdown 文件 + 索引</h3>
+<p>每个记忆是一个 <code>.md</code> 文件，YAML frontmatter 记录元数据：</p>
+<figure class="code-block"><figcaption>markdown</figcaption><pre><code>---
+name: user-preference-tabs
+description: User prefers tabs for indentation
+type: user
+---
+
+User prefers using tabs, not spaces, for indentation.
+**Why:** Consistency with existing codebase conventions.
+**How to apply:** Always use tabs when writing or editing files.</code></pre></figure>
+<p><code>MEMORY.md</code> 是索引，一行一个链接：</p>
+<figure class="code-block"><figcaption>markdown</figcaption><pre><code>- [user-preference-tabs](user-preference-tabs.md) — User prefers tabs for indentation</code></pre></figure>
+<p>写入新记忆时自动重建索引：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def write_memory_file(name, mem_type, description, body):
+    slug = name.lower().replace(&quot; &quot;, &quot;-&quot;)
+    filepath = MEMORY_DIR / f&quot;{slug}.md&quot;
+    filepath.write_text(
+        f&quot;---\nname: {name}\ndescription: {description}\ntype: {mem_type}\n---\n\n{body}\n&quot;
+    )
+    _rebuild_index()</code></pre></figure>
+<h3 id="加载-两条路径">加载：两条路径</h3>
+<p><strong>路径一：索引常驻 SYSTEM。</strong> <code>build_system()</code> 在每次用户请求开始时读取 <code>MEMORY.md</code>，把记忆清单注入。记忆提取和整理只在本轮结束时触发，因此同一轮用户请求中不需要重复重建 SYSTEM。</p>
+<p><strong>路径二：相关记忆按需注入。</strong> 每次用户请求开始时，<code>load_memories()</code> 把最近对话和记忆目录（name + description）一起发给 LLM 做一次轻量 side-query，选出相关的文件名，再读文件内容临时注入到当前 user turn。最多 5 条，控制开销。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def select_relevant_memories(messages, max_items=5):
+    files = list_memory_files()
+    if not files:
+        return []
+
+    # Build catalog: &quot;0: user-preference-tabs — User prefers tabs...&quot;
+    catalog = &quot;\n&quot;.join(f&quot;{i}: {f[&#x27;name&#x27;]} — {f[&#x27;description&#x27;]}&quot; for i, f in enumerate(files))
+
+    response = client.messages.create(model=MODEL, messages=[{&quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: f&quot;Select relevant memory indices. Return JSON array.\n\n&quot;
+                   f&quot;Recent conversation:\n{recent}\n\nMemory catalog:\n{catalog}&quot;}],
+        max_tokens=200)
+    text = extract_text(response.content).strip()
+    indices = json.loads(re.search(r&#x27;\[.*?\]&#x27;, text).group())
+    return [files[i][&quot;filename&quot;] for i in indices if 0 &lt;= i &lt; len(files)]</code></pre></figure>
+<p>如果 side-query 失败（API 错误、JSON 解析失败），降级到关键词匹配 name + description。</p>
+<h3 id="写入-每轮结束后提取">写入：每轮结束后提取</h3>
+<p>用户不会每次都说"记住这个"。偏好通常散落在正常对话中："用 tab 比空格好"、"以后都用单引号"。</p>
+<p><code>extract_memories()</code> 在每轮结束时运行，条件是模型停止且没有 tool_use（说明对话告一段落）：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code># In agent_loop:
+if response.stop_reason != &quot;tool_use&quot;:
+    extract_memories(pre_compress)   # 从压缩前快照提取新记忆
+    consolidate_memories()       # 检查是否需要整理
+    return</code></pre></figure>
+<p>提取前先检查已有记忆，避免重复。提取 prompt 要求 LLM 返回 <code>{name, type, description, body}</code> 的 JSON 数组，只有确实有新信息时才写文件。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def extract_memories(messages):
+    dialogue = format_recent_messages(messages[-10:])
+    existing = &quot;\n&quot;.join(f&quot;- {m[&#x27;name&#x27;]}: {m[&#x27;description&#x27;]}&quot; for m in list_memory_files())
+
+    prompt = (
+        &quot;Extract user preferences, constraints, or project facts.\n&quot;
+        &quot;Return JSON array: [{name, type, description, body}].\n&quot;
+        &quot;If nothing new or already covered, return [].\n\n&quot;
+        f&quot;Existing memories:\n{existing}\n\nDialogue:\n{dialogue[:4000]}&quot;
+    )
+    # ... parse response, write files ...</code></pre></figure>
+<h3 id="整理-低频合并去重">整理：低频合并去重</h3>
+<p>记忆文件会积累。<code>consolidate_memories()</code> 在文件数达到阈值（默认 10）时触发，让 LLM 去重、合并矛盾、淘汰过时记忆：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>CONSOLIDATE_THRESHOLD = 10
+
+def consolidate_memories():
+    files = list_memory_files()
+    if len(files) &lt; CONSOLIDATE_THRESHOLD:
+        return  # 太少，不值得整理
+    # Send all memories to LLM, get back deduplicated list
+    # Replace all files with consolidated results</code></pre></figure>
+<p>CC 把这个过程叫 Dream，实际有四层门控：时间间隔、扫描节流、会话数、文件锁。教学版简化为文件数阈值。</p>
+<h3 id="memory-适合保存什么">Memory 适合保存什么</h3>
+<p>Memory 保存跨会话仍然有用的信息：用户偏好、反复出现的反馈、项目背景、常用入口和排查线索。它关注“以后还会用到什么”，并通过索引 + 按需加载把这些信息带回当前对话。</p>
+<p>session memory 关注同一会话内的连续性：compact 之后，当前会话还需要保留哪些上下文。两者配合使用：Memory 管长期知识，session memory 管当前会话的压缩续接。</p>
+<hr class="section-rule">
+<h2 id="相对-s08-的变更">相对 s08 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s08)</th>
+<th>之后 (s09)</th>
+</tr></thead><tbody>
+<tr>
+<td>记忆能力</td>
+<td>无（压缩后偏好随摘要退化）</td>
+<td>存储 + 加载 + 提取 + 整理</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>write_memory_file, select_relevant_memories, load_memories, extract_memories, consolidate_memories</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>—</td>
+<td>.memory/MEMORY.md 索引 + .memory/*.md 文件</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>bash, read, write, edit, glob, todo_write, task, load_skill, compact (9)</td>
+<td>bash, read_file, write_file, edit_file, glob, task (6)</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>每轮只做压缩</td>
+<td>每轮注入记忆 + 压缩 + 每轮结束后提取 + 定期整理</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s09_memory/code.py</code></pre></figure>
+<p>试试这些 prompt（分多轮输入，观察记忆的累积和加载）：</p>
+<ol>
+<li><code>I prefer using tabs for indentation, not spaces. Remember that.</code></li>
+<li><code>Create a Python file called test.py</code>（观察 Agent 是否用了 tab）</li>
+<li><code>What did I tell you about my preferences?</code>（观察 Agent 是否记得）</li>
+<li><code>I also prefer single quotes over double quotes for strings.</code></li>
+</ol>
+<p>观察重点：每轮结束后是否出现 <code>[Memory: extracted N new memories]</code>？<code>.memory/</code> 目录下是否生成了 <code>.md</code> 文件？<code>MEMORY.md</code> 索引是否更新？新一轮对话时 Agent 是否自动加载了之前的记忆？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>记忆、压缩、工具都已就绪。但 system prompt 还是硬编码的一大段字符串。加了新工具要手动加描述，换了项目要重写整个 prompt。prompt 应该运行时组装。</p>
+<p>s10 System Prompt → 分段 + 运行时组装。不同项目、不同工具，拼出不同的 prompt。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>src/</code> 下 <code>memdir/</code>、<code>services/</code>、<code>utils/</code>、<code>query/</code> 的分析，行号已对照核实。</p></blockquote>
+<h3 id="源码路径">源码路径</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>文件</th>
+<th>行数</th>
+<th>职责</th>
+</tr></thead><tbody>
+<tr>
+<td><code>memdir/memdir.ts</code></td>
+<td>507</td>
+<td>核心：MEMORY.md 定义（<code>34-38</code>）、记忆行为指令区分 memory/plan/tasks（<code>199-266</code>）、<code>loadMemoryPrompt()</code> 三条路径（<code>419-490</code>）</td>
+</tr>
+<tr>
+<td><code>memdir/findRelevantMemories.ts</code></td>
+<td>141</td>
+<td>Sonnet side-query 选记忆（<code>18-24</code> 系统提示、<code>97-122</code> 调用逻辑）</td>
+</tr>
+<tr>
+<td><code>memdir/memoryTypes.ts</code></td>
+<td>271</td>
+<td>类型定义，frontmatter 字段</td>
+</tr>
+<tr>
+<td><code>memdir/memoryScan.ts</code></td>
+<td>—</td>
+<td>扫描 .md 文件，排除 MEMORY.md，读 frontmatter，最多 200 个，按 mtime 降序（<code>35-94</code>）</td>
+</tr>
+<tr>
+<td><code>services/extractMemories/extractMemories.ts</code></td>
+<td>615</td>
+<td>forked agent 提取记忆，受限权限，<code>skipTranscript: true</code>，<code>maxTurns: 5</code>（<code>371-427</code>）</td>
+</tr>
+<tr>
+<td><code>services/autoDream/autoDream.ts</code></td>
+<td>324</td>
+<td>Dream 整理，四层门控（<code>63-66</code> 默认值、<code>130-190</code> 门控、<code>224-233</code> forked agent）</td>
+</tr>
+<tr>
+<td><code>services/SessionMemory/sessionMemory.ts</code></td>
+<td>495</td>
+<td>会话级记忆管理</td>
+</tr>
+<tr>
+<td><code>services/compact/sessionMemoryCompact.ts</code></td>
+<td>—</td>
+<td>session memory 轻量摘要，阈值 10K/5/40K（<code>56-61</code>）</td>
+</tr>
+<tr>
+<td><code>utils/attachments.ts</code></td>
+<td>—</td>
+<td>注入预算：200 行 / 4096 字节每文件，60KB 每 session（<code>269-288</code>）；按 query 找相关 memory（<code>2196-2241</code>）</td>
+</tr>
+<tr>
+<td><code>query.ts</code></td>
+<td>—</td>
+<td>memory prefetch 每轮启动（<code>301-304</code>），非阻塞收集（<code>1592-1614</code>）</td>
+</tr>
+<tr>
+<td><code>query/stopHooks.ts</code></td>
+<td>—</td>
+<td>stop hook fire-and-forget 触发提取和 Dream（<code>141-155</code>）</td>
+</tr>
+</tbody></table></div>
+<h3 id="记忆选择-llm-选-不是-embedding">记忆选择：LLM 选，不是 embedding</h3>
+<p>CC 用 <strong>Sonnet 本身来选</strong>（<code>findRelevantMemories.ts</code>），不是 embedding 向量相似度：</p>
+<ol>
+<li><code>memoryScan.ts</code> 扫描 <code>.memory/</code> 下所有 <code>.md</code> 文件（排除 MEMORY.md），最多 200 个，按 mtime 降序</li>
+<li>把 <code>name</code> + <code>description</code> 列成清单</li>
+<li>发给 Sonnet side-query："根据名称和描述选出真正有用的记忆（最多 5 个）。不确定就不要选。"</li>
+<li>Sonnet 返回 <code>{ selected_memories: ["file1.md", ...] }</code></li>
+<li>选中文件读取完整内容（每文件 ≤ 200 行 / 4096 字节），注入上下文。单 session 总预算 60KB</li>
+</ol>
+<p>每轮用户 turn 开始时，<code>query.ts:301-304</code> 启动 memory prefetch（异步）；工具执行后 <code>1592-1614</code> 非阻塞收集结果，不卡主流程。</p>
+<h3 id="提取时机-stop-hook-不是-autocompact-后">提取时机：stop hook，不是 autoCompact 后</h3>
+<p>触发位置（<code>stopHooks.ts:141-155</code>）：在 <code>handleStopHooks()</code> 中，fire-and-forget 触发提取和 Dream。教学版把提取放在 <code>stop_reason != "tool_use"</code> 分支里，方向一致。</p>
+<p>CC 的提取通过 forked agent 执行（<code>extractMemories.ts:371-427</code>）：受限权限、<code>skipTranscript: true</code>、<code>maxTurns: 5</code>。还有重叠保护：如果主 Agent 已经写入了记忆文件，跳过提取。</p>
+<h3 id="记忆文件格式">记忆文件格式</h3>
+<p>CC 用 Markdown + YAML frontmatter，和教学版一致。四种类型：<code>user</code>、<code>feedback</code>、<code>project</code>、<code>reference</code>。</p>
+<p><code>memdir.ts:34-38</code> 定义索引约束：<code>MEMORY.md</code> 最多 200 行 / 25KB。<code>memdir.ts:199-266</code> 构建记忆行为指令，明确区分 memory、plan、tasks。存储位置：<code>~/.claude/projects/&lt;sanitized-git-root&gt;/memory/</code>。</p>
+<h3 id="dream-四层门控">Dream：四层门控</h3>
+<p>不是"空闲时触发"或"数量够了就合并"，而是四层门控（<code>autoDream.ts</code>，默认值 <code>63-66</code>，门控逻辑 <code>130-190</code>）：</p>
+<ol>
+<li><strong>时间门控</strong>：距上次合并 ≥ 24 小时</li>
+<li><strong>扫描节流</strong>：避免频繁扫描文件系统</li>
+<li><strong>会话门控</strong>：自上次合并以来修改了 ≥ 5 个会话 transcript</li>
+<li><strong>锁门控</strong>：没有其他进程正在合并（<code>.consolidate-lock</code> 文件）</li>
+</ol>
+<p>合并本身通过 forked agent 执行（<code>224-233</code>）：定位 → 收集近期信号 → 合并写文件 → 剪枝更新索引。锁文件 mtime 就是 lastConsolidatedAt。崩溃恢复：1 小时后锁自动过期。</p>
+<h3 id="user-memory-vs-session-memory">User Memory vs Session Memory</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th></th>
+<th>User Memory</th>
+<th>Session Memory</th>
+</tr></thead><tbody>
+<tr>
+<td>持久性</td>
+<td>跨会话</td>
+<td>单会话</td>
+</tr>
+<tr>
+<td>存储</td>
+<td><code>memory/</code> 下多个 .md 文件</td>
+<td><code>session-memory/&lt;id&gt;/memory.md</code></td>
+</tr>
+<tr>
+<td>加载到</td>
+<td>system prompt</td>
+<td>compact 摘要</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>跨会话的知识积累</td>
+<td>跨 compact 的上下文连续性</td>
+</tr>
+</tbody></table></div>
+<p>sessionMemoryCompact（s08 中提到的机制）正是使用了 Session Memory：autoCompact 前先读 session memory 文件，如果内容足够（≥ 10K token、≥ 5 条文本消息、≤ 40K token，<code>sessionMemoryCompact.ts:56-61</code>），就用它做摘要，不调 LLM。</p>
+<h3 id="真实实现比教学版复杂的地方">真实实现比教学版复杂的地方</h3>
+<ul>
+<li><strong>Feature flags</strong>：记忆相关功能有多层 feature gate 控制</li>
+<li><strong>Team memory</strong>：团队共享记忆，<code>loadMemoryPrompt()</code> 有专门路径（教学版未涉及）</li>
+<li><strong>KAIROS</strong>：时机感知的记忆提取策略，<code>loadMemoryPrompt()</code> 中 daily-log 模式</li>
+<li><strong>Prompt cache</strong>：记忆注入需要考虑 prompt cache 的 TTL，避免每次都重写 system prompt 的大段内容</li>
+<li><strong>文件锁</strong>：多进程并发时的锁机制</li>
+<li><strong>Memory prefetch</strong>：异步预取，不阻塞主流程</li>
+</ul>
+<h3 id="教学版的简化是刻意的">教学版的简化是刻意的</h3>
+<ul>
+<li>LLM side-query → LLM side-query + 关键词降级：教学版保留了 LLM 选择，加了降级路径</li>
+<li>记忆 JSON → Markdown + frontmatter：教学版与 CC 一致</li>
+<li>stop hook 触发 → <code>stop_reason != "tool_use"</code> 分支：方向一致</li>
+<li>四层门控 → 文件数阈值：教学版没有 transcript 系统和多会话概念</li>
+<li>forked agent + 受限权限 → 直接调用：教学版没有子进程隔离</li>
+</ul>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s08_context_compact/"><span>上一章</span><strong>s08 Context Compact</strong></a><a class="page-link is-next" href="/s10_system_prompt/"><span>下一章</span><strong>s10 System Prompt</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#存储-markdown-文件-索引"><span>04</span>存储：Markdown 文件 + 索引</a>
+<a class="level-3" href="#加载-两条路径"><span>05</span>加载：两条路径</a>
+<a class="level-3" href="#写入-每轮结束后提取"><span>06</span>写入：每轮结束后提取</a>
+<a class="level-3" href="#整理-低频合并去重"><span>07</span>整理：低频合并去重</a>
+<a class="level-3" href="#memory-适合保存什么"><span>08</span>Memory 适合保存什么</a>
+<a class="level-2" href="#相对-s08-的变更"><span>09</span>相对 s08 的变更</a>
+<a class="level-2" href="#试一下"><span>10</span>试一下</a>
+<a class="level-2" href="#接下来"><span>11</span>接下来</a>
+<a class="level-3" href="#源码路径"><span>12</span>源码路径</a>
+<a class="level-3" href="#记忆选择-llm-选-不是-embedding"><span>13</span>记忆选择：LLM 选，不是 embedding</a>
+<a class="level-3" href="#提取时机-stop-hook-不是-autocompact-后"><span>14</span>提取时机：stop hook，不是 autoCompact 后</a>
+<a class="level-3" href="#记忆文件格式"><span>15</span>记忆文件格式</a>
+<a class="level-3" href="#dream-四层门控"><span>16</span>Dream：四层门控</a>
+<a class="level-3" href="#user-memory-vs-session-memory"><span>17</span>User Memory vs Session Memory</a>
+<a class="level-3" href="#真实实现比教学版复杂的地方"><span>18</span>真实实现比教学版复杂的地方</a>
+<a class="level-3" href="#教学版的简化是刻意的"><span>19</span>教学版的简化是刻意的</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

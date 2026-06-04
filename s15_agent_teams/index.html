@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s15: Agent Teams — 一个搞不定，组队来 · Learn Claude Code</title>
+    <meta name="description" content="一个搞不定，组队来">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s15_agent_teams/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s15_agent_teams" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s15 / Harness 课程</p>
+        <h1>s15: Agent Teams — 一个搞不定，组队来</h1>
+        <p class="lead">一个搞不定，组队来。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s14_cron_scheduler/"><span>上一章</span><strong>s14 Cron Scheduler</strong></a><a class="page-link is-next" href="/s16_team_protocols/"><span>下一章</span><strong>s16 Team Protocols</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="is-current" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s15_agent_teams" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s15_agent_teams</a></p>
+        <h1 id="s15-agent-teams-一个搞不定-组队来">s15: Agent Teams — 一个搞不定，组队来</h1>
+<p>s01 → ... → s13 → s14 → <code>s15</code> → <a href="/s16_team_protocols/" rel="noopener noreferrer">s16</a> → s17 → s18 → s19 → s20</p>
+<blockquote><p><em>"一个搞不定, 组队来"</em> — 文件收件箱 + 队友线程。  <strong>Harness 层</strong>: 团队 — 多 Agent 协作, 消息总线。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>"重构整个后端"涉及认证模块、数据库层、API 路由、测试。一个 Agent 在修 API 路由时，认证模块的细节已经不在上下文里了。上下文窗口就那么大，单个 Agent 的注意力覆盖不了所有模块。</p>
+<p>s06 的子 Agent 是临时工，叫来干一件事就走了。但有些任务需要能通信、能协作的队友。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s15_agent_teams/images/agent-teams-overview.svg" alt="Agent Teams Overview" loading="lazy"></figure>
+<p>教学代码沿用 S14 的能力（prompt 组装、任务系统、后台执行、cron 调度）。为了聚焦团队机制，省略了完整错误恢复、记忆和技能系统。新增三样：<strong>MessageBus</strong>（文件收件箱）、<strong>spawn_teammate_thread</strong>（启动队友线程）、<strong>inbox 注入</strong>（Lead 接收队友消息并注入 history）。</p>
+<p>子 Agent vs 队友：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th></th>
+<th>s06 子 Agent</th>
+<th>s15 队友</th>
+</tr></thead><tbody>
+<tr>
+<td>生命周期</td>
+<td>一次性，用完销毁</td>
+<td>多轮（教学版限 10 轮，真实 CC 用 idle loop）</td>
+</tr>
+<tr>
+<td>通信</td>
+<td>只回传结论</td>
+<td>异步收件箱，随时通信</td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>完全隔离</td>
+<td>通过消息共享信息</td>
+</tr>
+<tr>
+<td>数量</td>
+<td>一个主 Agent + 偶尔子 Agent</td>
+<td>一个 Lead + 多个队友</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s15_agent_teams/images/team-topology.svg" alt="Team Topology" loading="lazy"></figure>
+<h3 id="messagebus-文件收件箱">MessageBus: 文件收件箱</h3>
+<p>每个 Agent（包括 Lead 和队友）有一个 <code>.jsonl</code> 邮箱。发消息 = 往对方的文件里 append 一行 JSON。读消息 = 读文件 + 删除（消费式）：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>class MessageBus:
+    def send(self, from_agent: str, to_agent: str,
+             content: str, msg_type: str = &quot;message&quot;):
+        msg = {&quot;from&quot;: from_agent, &quot;to&quot;: to_agent,
+               &quot;content&quot;: content, &quot;type&quot;: msg_type,
+               &quot;ts&quot;: time.time()}
+        inbox = MAILBOX_DIR / f&quot;{to_agent}.jsonl&quot;
+        with open(inbox, &quot;a&quot;) as f:
+            f.write(json.dumps(msg) + &quot;\n&quot;)
+
+    def read_inbox(self, agent: str) -&gt; list[dict]:
+        inbox = MAILBOX_DIR / f&quot;{agent}.jsonl&quot;
+        if not inbox.exists():
+            return []
+        msgs = [json.loads(line) for line in inbox.read_text().splitlines()]
+        inbox.unlink()  # 消费式：读完删除
+        return msgs</code></pre></figure>
+<p>为什么用文件而不是内存队列？教学版选文件是因为直观、跨线程可观察。真实 CC 也用文件收件箱（<code>~/.claude/teams/{team}/inboxes/</code>），但加了 <code>proper-lockfile</code> 防并发写冲突。教学版的 <code>read_inbox</code> 有 read + unlink 竞态，多线程同时读可能丢消息，对教学场景可以接受。</p>
+<h3 id="spawnteammatethread-启动队友">spawn_teammate_thread: 启动队友</h3>
+<p>Lead 调用 <code>spawn_teammate</code> 工具启动一个队友。队友跑在自己的 daemon 线程里，有自己的 system prompt、自己的 messages、自己的简化工具集：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def spawn_teammate_thread(name: str, role: str, prompt: str) -&gt; str:
+    system = f&quot;You are &#x27;{name}&#x27;, a {role}. Use tools to complete tasks.&quot;
+
+    def run():
+        messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}]
+        sub_tools = [bash, read_file, write_file, send_message]
+        for _ in range(10):           # 最多 10 轮
+            inbox = BUS.read_inbox(name)
+            if inbox:
+                messages.append({&quot;role&quot;: &quot;user&quot;,
+                    &quot;content&quot;: f&quot;&lt;inbox&gt;{json.dumps(inbox)}&lt;/inbox&gt;&quot;})
+            response = client.messages.create(
+                model=MODEL, system=system, messages=messages[-20:],
+                tools=sub_tools, max_tokens=8000)
+            # ... 执行工具、处理结果
+        # 完成后发 summary 给 Lead
+        BUS.send(name, &quot;lead&quot;, summary, &quot;result&quot;)
+
+    threading.Thread(target=run, daemon=True).start()</code></pre></figure>
+<p>关键设计：</p>
+<ul>
+<li><strong>队友有简化工具集</strong>：bash、read、write、send_message。教学版省略了任务和 cron，聚焦通信机制。真实 CC 的队友也有 TaskCreate、TaskUpdate 等工具，任务系统是团队共享的</li>
+<li><strong>教学版限 10 轮</strong>：防止队友无限循环。真实 CC 用 idle loop：跑完一轮后发 <code>idle_notification</code>，等 inbox 消息，收到后继续，直到 <code>shutdown_request</code> 才退出</li>
+<li><strong>完成后自动汇报</strong>：<code>BUS.send(name, "lead", summary)</code> 把最终结果发到 Lead 的收件箱</li>
+</ul>
+<h3 id="lead-的-inbox-注入">Lead 的 inbox 注入</h3>
+<p>Lead 在每轮主循环结束后检查收件箱。队友发来的消息注入到 history 里，让 LLM 能看到并做出反应：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code># 主循环结束后
+inbox = BUS.read_inbox(&quot;lead&quot;)
+if inbox:
+    inbox_text = &quot;\n&quot;.join(
+        f&quot;From {m[&#x27;from&#x27;]}: {m[&#x27;content&#x27;][:200]}&quot; for m in inbox)
+    history.append({&quot;role&quot;: &quot;user&quot;,
+                    &quot;content&quot;: f&quot;[Inbox]\n{inbox_text}&quot;})</code></pre></figure>
+<p>教学版在用户输入循环外注入。CC 更精细，Lead 的 <code>useInboxPoller</code> 每 1 秒检查一次，有消息就提交为新的 turn，不需要等用户输入。</p>
+<h3 id="权限冒泡">权限冒泡</h3>
+<p>教学版省略了权限冒泡。真实 CC 的流程（<code>permissionSync.ts</code>、<code>useSwarmPermissionPoller.ts</code>）：</p>
+<ol>
+<li>队友遇到需要审批的操作 → 发 <code>permission_request</code> 到 Lead 收件箱</li>
+<li>Lead 的 <code>useInboxPoller</code> 检测到请求 → 路由到审批队列</li>
+<li>用户审批后 → Lead 发 <code>permission_response</code> 回队友</li>
+<li>队友的 <code>useSwarmPermissionPoller</code>（每 500ms 轮询）收到回复 → 继续或拒绝</li>
+</ol>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>1. Lead: &quot;搭建后端：一个人搞不定，组队吧&quot;
+2. Lead → spawn_teammate(&quot;alice&quot;, &quot;backend dev&quot;, &quot;创建数据库 schema&quot;)
+3. Lead → spawn_teammate(&quot;bob&quot;, &quot;frontend dev&quot;, &quot;写 API 客户端&quot;)
+4. alice 线程启动 → 自己的 LLM 调用 → bash &quot;python manage.py migrate&quot;
+5. bob 线程启动 → 自己的 LLM 调用 → write_file(&quot;client.ts&quot;, ...)
+6. alice 完成 → BUS.send(&quot;alice&quot;, &quot;lead&quot;, &quot;Schema done: users, orders tables&quot;)
+7. bob 完成 → BUS.send(&quot;bob&quot;, &quot;lead&quot;, &quot;Client written with types&quot;)
+8. Lead 下次循环 → inbox 注入 history → LLM 看到 alice 和 bob 的结果</code></pre></figure>
+<p>两个队友并行工作。</p>
+<hr class="section-rule">
+<h2 id="相对-s14-的变更">相对 s14 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s14)</th>
+<th>之后 (s15)</th>
+</tr></thead><tbody>
+<tr>
+<td>Agent 数量</td>
+<td>1</td>
+<td>1 Lead + N 队友线程</td>
+</tr>
+<tr>
+<td>通信</td>
+<td>无</td>
+<td>MessageBus + .mailboxes/*.jsonl</td>
+</tr>
+<tr>
+<td>新类</td>
+<td>—</td>
+<td>MessageBus, active_teammates dict</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>spawn_teammate_thread, run_send_message, run_check_inbox</td>
+</tr>
+<tr>
+<td>Lead 工具</td>
+<td>11 (s14)</td>
+<td>+ spawn_teammate, send_message, check_inbox (14)</td>
+</tr>
+<tr>
+<td>队友工具</td>
+<td>—</td>
+<td>bash, read_file, write_file, send_message (4)</td>
+</tr>
+<tr>
+<td>权限</td>
+<td>本地决策</td>
+<td>教学版省略（真实 CC 有冒泡机制）</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s15_agent_teams/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Spawn alice as a backend developer. Ask her to create a file called schema.sql with a users table.</code></li>
+<li><code>Check your inbox for alice's result.</code></li>
+<li><code>Spawn bob as a tester. Ask him to check if schema.sql exists and list its contents.</code></li>
+</ol>
+<p>观察重点：Lead 如何启动队友？<code>.mailboxes/</code> 目录下的 JSONL 文件长什么样？队友完成后 Lead 的 inbox 有没有注入到 history？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>队友能干活、能通信。但如果 Lead 想让 Alice 关机，直接杀线程会留下写到一半的文件。需要一个体面的关机协议：Lead 发 shutdown_request，队友收尾后退出。</p>
+<p>s16 Team Protocols → 关机握手与消息约定。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>spawnMultiAgent.ts</code>、<code>useInboxPoller.ts</code>（969 行）、<code>useSwarmPermissionPoller.ts</code>（330 行）、<code>teammateMailbox.ts</code>、<code>teamHelpers.ts</code> 的完整分析。</p></blockquote>
+<h3 id="一-没有中央消息总线-是文件系统">一、没有中央消息总线，是文件系统</h3>
+<p>教学版用 <code>MessageBus</code> 类收发消息。CC 的做法更直接，每个 Agent 直接写其他 Agent 的收件箱文件。</p>
+<p>收件箱路径：<code>~/.claude/teams/{teamName}/inboxes/{agentName}.json</code></p>
+<p>写入时用 <code>proper-lockfile</code> 文件锁保证并发安全（最多重试 10 次）。每个文件是一个 JSON 数组，append 新消息时读→追加→写回。</p>
+<h3 id="二-15-种消息类型">二、15 种消息类型</h3>
+<p>CC 的团队通信有 15 种结构化消息（<code>teammateMailbox.ts</code>）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>类型</th>
+<th>方向</th>
+<th>用途</th>
+</tr></thead><tbody>
+<tr>
+<td><code>plain text</code></td>
+<td>双向</td>
+<td>普通队友间通信</td>
+</tr>
+<tr>
+<td><code>idle_notification</code></td>
+<td>队友→Lead</td>
+<td>队友完成一轮工作，进入空闲</td>
+</tr>
+<tr>
+<td><code>permission_request</code></td>
+<td>队友→Lead</td>
+<td>队友需要操作审批</td>
+</tr>
+<tr>
+<td><code>permission_response</code></td>
+<td>Lead→队友</td>
+<td>Lead 审批结果</td>
+</tr>
+<tr>
+<td><code>plan_approval_request</code></td>
+<td>队友→Lead</td>
+<td>队友提交计划待审</td>
+</tr>
+<tr>
+<td><code>plan_approval_response</code></td>
+<td>Lead→队友</td>
+<td>Lead 审批计划</td>
+</tr>
+<tr>
+<td><code>shutdown_request</code></td>
+<td>Lead→队友</td>
+<td>请求体面关机</td>
+</tr>
+<tr>
+<td><code>shutdown_approved</code></td>
+<td>队友→Lead</td>
+<td>确认关机</td>
+</tr>
+<tr>
+<td><code>shutdown_rejected</code></td>
+<td>队友→Lead</td>
+<td>拒绝关机（附原因）</td>
+</tr>
+<tr>
+<td><code>task_assignment</code></td>
+<td>Lead→队友</td>
+<td>分配任务</td>
+</tr>
+<tr>
+<td><code>team_permission_update</code></td>
+<td>Lead→队友</td>
+<td>广播权限变更</td>
+</tr>
+<tr>
+<td><code>mode_set_request</code></td>
+<td>Lead→队友</td>
+<td>修改队友的权限模式</td>
+</tr>
+<tr>
+<td><code>sandbox_permission_*</code></td>
+<td>双向</td>
+<td>网络权限请求/回复</td>
+</tr>
+<tr>
+<td><code>teammate_terminated</code></td>
+<td>系统</td>
+<td>队友被移除通知</td>
+</tr>
+</tbody></table></div>
+<p>文本消息被包装在 <code>&lt;teammate-message&gt;</code> XML 标签中交付给模型。</p>
+<h3 id="三-权限冒泡-双向轮询">三、权限冒泡：双向轮询</h3>
+<p>教学版省略了权限冒泡。CC 的实际流程（<code>permissionSync.ts</code>）：</p>
+<ol>
+<li><strong>队友</strong>遇到需要审批的操作 → 发 <code>permission_request</code> 到 Lead 的收件箱</li>
+<li><strong>Lead</strong> 的 <code>useInboxPoller</code>（每 1 秒轮询）检测到请求 → 路由到 <code>ToolUseConfirmQueue</code></li>
+<li>Lead 的 UI 显示审批对话框，带队友名字和颜色</li>
+<li>用户审批后 → Lead 发 <code>permission_response</code> 回队友的收件箱</li>
+<li><strong>队友</strong>的 <code>useSwarmPermissionPoller</code>（每 500ms 轮询）收到回复 → 继续或拒绝执行</li>
+</ol>
+<h3 id="四-队友生命周期">四、队友生命周期</h3>
+<p>CC 的队友由 <code>spawnTeammate()</code>（<code>spawnMultiAgent.ts</code>）创建：</p>
+<ol>
+<li><strong>Spawn</strong>：创建 tmux 窗格（或进程内），分配颜色，写入 team config</li>
+<li><strong>Work</strong>：<code>useInboxPoller</code> 每 1 秒检查收件箱 → 有消息就提交为新的 turn</li>
+<li><strong>Idle</strong>：Stop hook 触发 → 发 <code>idle_notification</code> 给 Lead</li>
+<li><strong>Shutdown</strong>：Lead 发 <code>shutdown_request</code> → 队友回复 <code>shutdown_approved</code> → Lead 清理</li>
+</ol>
+<h3 id="五-team-config">五、Team Config</h3>
+<p>团队注册表在 <code>~/.claude/teams/{teamName}/config.json</code>（<code>teamHelpers.ts</code>）：</p>
+<figure class="code-block"><figcaption>json</figcaption><pre><code>{
+  &quot;name&quot;: &quot;my-team&quot;,
+  &quot;leadAgentId&quot;: &quot;lead@my-team&quot;,
+  &quot;members&quot;: [{
+    &quot;agentId&quot;: &quot;researcher@my-team&quot;,
+    &quot;name&quot;: &quot;researcher&quot;,
+    &quot;agentType&quot;: &quot;general-purpose&quot;,
+    &quot;color&quot;: &quot;blue&quot;,
+    &quot;isActive&quot;: true
+  }]
+}</code></pre></figure>
+<p>队友之间不能嵌套（<code>AgentTool.tsx:273</code> 明确禁止 "teammates spawning other teammates"）。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s14_cron_scheduler/"><span>上一章</span><strong>s14 Cron Scheduler</strong></a><a class="page-link is-next" href="/s16_team_protocols/"><span>下一章</span><strong>s16 Team Protocols</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#messagebus-文件收件箱"><span>04</span>MessageBus: 文件收件箱</a>
+<a class="level-3" href="#spawnteammatethread-启动队友"><span>05</span>spawnteammatethread: 启动队友</a>
+<a class="level-3" href="#lead-的-inbox-注入"><span>06</span>Lead 的 inbox 注入</a>
+<a class="level-3" href="#权限冒泡"><span>07</span>权限冒泡</a>
+<a class="level-3" href="#合起来跑"><span>08</span>合起来跑</a>
+<a class="level-2" href="#相对-s14-的变更"><span>09</span>相对 s14 的变更</a>
+<a class="level-2" href="#试一下"><span>10</span>试一下</a>
+<a class="level-2" href="#接下来"><span>11</span>接下来</a>
+<a class="level-3" href="#一-没有中央消息总线-是文件系统"><span>12</span>一、没有中央消息总线，是文件系统</a>
+<a class="level-3" href="#二-15-种消息类型"><span>13</span>二、15 种消息类型</a>
+<a class="level-3" href="#三-权限冒泡-双向轮询"><span>14</span>三、权限冒泡：双向轮询</a>
+<a class="level-3" href="#四-队友生命周期"><span>15</span>四、队友生命周期</a>
+<a class="level-3" href="#五-team-config"><span>16</span>五、Team Config</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

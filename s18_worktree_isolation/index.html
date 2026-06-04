@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s18: Worktree Isolation — 各干各的，互不干扰 · Learn Claude Code</title>
+    <meta name="description" content="各干各的目录，互不干扰">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s18_worktree_isolation/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s18_worktree_isolation" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s18 / Harness 课程</p>
+        <h1>s18: Worktree Isolation — 各干各的，互不干扰</h1>
+        <p class="lead">各干各的目录，互不干扰。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s17_autonomous_agents/"><span>上一章</span><strong>s17 Autonomous Agents</strong></a><a class="page-link is-next" href="/s19_mcp_plugin/"><span>下一章</span><strong>s19 MCP Plugin</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="is-current" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s18_worktree_isolation" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s18_worktree_isolation</a></p>
+        <h1 id="s18-worktree-isolation-各干各的-互不干扰">s18: Worktree Isolation — 各干各的，互不干扰</h1>
+<p>s01 → ... → s16 → s17 → <code>s18</code> → <a href="/s19_mcp_plugin/" rel="noopener noreferrer">s19</a> → s20</p>
+<blockquote><p><em>"各干各的目录, 互不干扰"</em> — 任务管目标, worktree 管目录, 按 ID 绑定。  <strong>Harness 层</strong>: 隔离 — 并行执行的目录隔离。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>s17 中，Alice 和 Bob 都在同一个目录下工作。Alice 的任务是"重构认证模块"，Bob 的任务是"重构 UI 登录页"。</p>
+<p>Alice <code>write_file("config.py", ...)</code>。Bob 也 <code>write_file("config.py", ...)</code>。两个人改同一个文件，互相覆盖。而且无法干净地回滚——分不清哪些改动是谁的。</p>
+<p>s15-s17 解决了"谁干什么"（任务系统）和"怎么通信"（消息总线），但没解决"在哪干"。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s18_worktree_isolation/images/worktree-overview.svg" alt="Worktree Overview" loading="lazy"></figure>
+<p>Git worktree 让你在同一仓库中创建多个独立的工作目录，每个有自己的分支。Alice 在 <code>.worktrees/auth-refactor/</code> 下工作，Bob 在 <code>.worktrees/ui-login/</code> 下工作——互不干扰。</p>
+<p>沿用 S17 的教学版 MessageBus、协议和自治认领机制。本章新增：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>能力</th>
+<th>作用</th>
+</tr></thead><tbody>
+<tr>
+<td>create_worktree</td>
+<td>为任务创建独立目录 + 独立分支</td>
+</tr>
+<tr>
+<td>bind_task_to_worktree</td>
+<td>把任务和工作目录绑定（不改状态）</td>
+</tr>
+<tr>
+<td>remove_worktree / keep_worktree</td>
+<td>完成后清理或保留</td>
+</tr>
+<tr>
+<td>validate_worktree_name</td>
+<td>拒绝路径穿越和非法字符</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="创建-任务-worktree-绑定">创建：任务-Worktree 绑定</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def create_worktree(name: str, task_id: str = &quot;&quot;) -&gt; str:
+    validate_worktree_name(name)       # 只允许 [A-Za-z0-9._-]{1,64}
+    path = WORKTREES_DIR / name
+    ok, result = run_git([&quot;worktree&quot;, &quot;add&quot;, str(path), &quot;-b&quot;, f&quot;wt/{name}&quot;, &quot;HEAD&quot;])
+    if not ok:
+        return f&quot;Git error: {result}&quot;
+    if task_id:
+        bind_task_to_worktree(task_id, name)
+    log_event(&quot;create&quot;, name, task_id)
+    return f&quot;Worktree &#x27;{name}&#x27; created at {path}&quot;
+
+def bind_task_to_worktree(task_id: str, worktree_name: str):
+    task = load_task(task_id)
+    task.worktree = worktree_name       # 只写 worktree 字段
+    save_task(task)                     # 状态保持 pending，等队友 claim</code></pre></figure>
+<p>绑定规则：一个任务绑定一个 worktree。绑定不改任务状态——任务仍是 <code>pending</code>，队友自动认领时才推进到 <code>in_progress</code>。这样 Lead 可以提前创建任务和 worktree，队友 idle 时自然认领带 worktree 的任务。</p>
+<h3 id="队友工具的-cwd-切换">队友工具的 cwd 切换</h3>
+<p>教学版给每个队友维护一个 <code>wt_ctx</code> 字典，记录当前 worktree 路径。队友认领带 worktree 的任务时，<code>wt_ctx</code> 自动设置为 worktree 路径；队友的 <code>bash</code>、<code>read_file</code>、<code>write_file</code> 在 worktree 目录下执行：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code># 队友线程内部
+wt_ctx = {&quot;path&quot;: None}
+
+def _run_claim_task(task_id):
+    result = claim_task(task_id, owner=name)
+    if &quot;Claimed&quot; in result:
+        task = load_task(task_id)
+        if task.worktree:
+            wt_ctx[&quot;path&quot;] = str(WORKTREES_DIR / task.worktree)
+    return result
+
+def _run_bash(command):
+    return run_bash(command, cwd=wt_ctx[&quot;path&quot;])  # 在 worktree 下执行</code></pre></figure>
+<p>这是教学简化。真实 CC 的 EnterWorktree 用 <code>process.chdir()</code> 切换整个进程目录，AgentTool isolation 用 <code>cwdOverride</code> 包住子 agent 执行。</p>
+<h3 id="收尾-keep-还是-remove">收尾：Keep 还是 Remove</h3>
+<p>任务完成后，两个选择：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def remove_worktree(name: str, discard_changes: bool = False) -&gt; str:
+    # 安全检查：有改动时默认拒绝
+    if not discard_changes:
+        files, commits = _count_worktree_changes(path)
+        if files &gt; 0 or commits &gt; 0:
+            return &quot;有未提交改动，使用 discard_changes=true 强制删除，或 keep_worktree 保留&quot;
+    ok, _ = run_git([&quot;worktree&quot;, &quot;remove&quot;, str(path), &quot;--force&quot;])
+    if not ok:
+        return &quot;删除失败&quot;
+    run_git([&quot;branch&quot;, &quot;-D&quot;, f&quot;wt/{name}&quot;])
+    log_event(&quot;remove&quot;, name)
+
+def keep_worktree(name: str) -&gt; str:
+    log_event(&quot;keep&quot;, name)
+    return f&quot;Worktree &#x27;{name}&#x27; kept for review (branch: wt/{name})&quot;</code></pre></figure>
+<p>Keep = 留着分支，等人工 review 后合并到主分支。Remove = 有改动时默认拒绝，需要 <code>discard_changes=true</code> 确认。不自动 complete task——任务完成由队友的 <code>complete_task</code> 显式触发。</p>
+<h3 id="事件流-可审计">事件流：可审计</h3>
+<p>每次生命周期操作写入日志，方便排查：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def log_event(event_type: str, worktree_name: str, task_id: str = &quot;&quot;):
+    event = {&quot;type&quot;: event_type, &quot;worktree&quot;: worktree_name,
+             &quot;task_id&quot;: task_id, &quot;ts&quot;: time.time()}
+    # append to .worktrees/events.jsonl</code></pre></figure>
+<p>事件类型：<code>create</code>（创建）、<code>remove</code>（删除）、<code>keep</code>（保留）。教学版只记录事件用于人工排查；完整恢复还需要 index 或 <code>git worktree list</code> 扫描。</p>
+<h3 id="rungit-返回成功-失败">run_git：返回成功/失败</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def run_git(args: list[str]) -&gt; tuple[bool, str]:
+    r = subprocess.run([&quot;git&quot;] + args, cwd=WORKDIR, ...)
+    return r.returncode == 0, output</code></pre></figure>
+<p><code>create_worktree</code> 和 <code>remove_worktree</code> 只在 git 命令成功后才写事件日志，保证日志反映真实状态。</p>
+<hr class="section-rule">
+<h2 id="相对-s17-的变更">相对 s17 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s17)</th>
+<th>之后 (s18)</th>
+</tr></thead><tbody>
+<tr>
+<td>工作目录</td>
+<td>所有 Agent 共享 WORKDIR</td>
+<td>每个任务可绑定独立 git worktree</td>
+</tr>
+<tr>
+<td>Task 数据</td>
+<td>id/subject/status/owner/blockedBy</td>
+<td>+ worktree 字段</td>
+</tr>
+<tr>
+<td>队友工具 cwd</td>
+<td>始终 WORKDIR</td>
+<td>认领带 worktree 的任务时自动切换</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>create_worktree, bind_task_to_worktree, remove_worktree, keep_worktree, validate_worktree_name</td>
+</tr>
+<tr>
+<td>worktree 安全</td>
+<td>无</td>
+<td>name 校验 + 有改动时拒绝删除</td>
+</tr>
+<tr>
+<td>事件日志</td>
+<td>无</td>
+<td>events.jsonl 生命周期审计</td>
+</tr>
+<tr>
+<td>Lead 工具</td>
+<td>14 (s17)</td>
+<td>+ create_worktree, remove_worktree, keep_worktree (17)</td>
+</tr>
+<tr>
+<td>队友工具</td>
+<td>8 (s17)</td>
+<td>8（bash/read/write 在 worktree cwd 执行）</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s18_worktree_isolation/code.py</code></pre></figure>
+<p>试试这个 prompt：</p>
+<p><code>Create two tasks, then create worktrees for each (bind with task_id). Spawn alice and bob. Watch them auto-claim and work in isolated directories.</code></p>
+<p>观察重点：两个 worktree 的 <code>git status</code> 输出是否显示不同的分支？队友认领带 worktree 的任务后，bash 命令是否在 worktree 目录下执行？<code>remove_worktree</code> 对有改动的 worktree 是否拒绝？<code>.tasks/</code> 中的任务在绑定后状态是否仍为 <code>pending</code>？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>Agent 团队能在隔离的工作空间中自组织了。但 Agent 的能力受限于我们给它写的工具——bash、read、write、task...</p>
+<p>如果用户已经有了自己的工具怎么办？比如一个公司内部的 Jira API、一个自建的部署系统？</p>
+<p>s19 MCP Plugin → 给 Agent 装一个插件系统。外部工具通过标准协议接入，Agent 不需要知道它们是谁写的。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<p>CC 的 worktree 系统有两条路径：<strong>EnterWorktree</strong>（当前会话切入）和 <strong>AgentTool isolation</strong>（子 agent 隔离）。</p>
+<h3 id="enterworktree-当前会话切换">EnterWorktree：当前会话切换</h3>
+<p><code>EnterWorktreeTool.ts:92-97</code> 创建 worktree 后立即 <code>process.chdir(worktreePath)</code>、<code>setCwd()</code>、<code>setOriginalCwd()</code>、<code>saveWorktreeState()</code>。当前会话的工作目录直接切换到 worktree——不是 prompt 提醒，而是进程级目录变更。</p>
+<p><code>ExitWorktreeTool.ts:261-320</code> 的 keep/remove 都会 <code>restoreSessionToOriginalCwd()</code> 恢复原目录。Remove 时检查未提交改动（<code>ExitWorktreeTool.ts:190-220</code>），没有 <code>discard_changes: true</code> 就拒绝删除。</p>
+<h3 id="agenttool-isolation-子-agent-隔离">AgentTool isolation：子 agent 隔离</h3>
+<p><code>AgentTool.tsx:590-641</code> 在 <code>isolation: "worktree"</code> 时调用 <code>createAgentWorktree()</code> 创建 worktree，用 <code>cwdOverridePath</code> 包住子 agent 执行。子 agent 的所有操作自动在 worktree 目录下进行。<code>AgentTool/prompt.ts:272</code> 告诉模型：这是临时 worktree，无改动自动清理，有改动返回路径和分支。</p>
+<p><code>worktree.ts:902-951</code> 的 <code>createAgentWorktree()</code> 不修改全局 session cwd，只给子 agent 用。<code>worktree.ts:961-1020</code> 的 <code>removeAgentWorktree()</code> 从主 repo root 删除。</p>
+<h3 id="name-校验">name 校验</h3>
+<p><code>worktree.ts:76-84</code> 校验 slug：拒绝 <code>.</code>/<code>..</code>，允许 <code>[a-zA-Z0-9._-]</code>。<code>worktree.ts:48</code> 定义 <code>VALID_WORKTREE_SLUG_SEGMENT</code>。教学版的 <code>validate_worktree_name</code> 用同样的规则。</p>
+<h3 id="路径和分支命名">路径和分支命名</h3>
+<p>真实路径是 <code>.claude/worktrees/</code>，分支名 <code>worktree-{slug}</code>（<code>worktree.ts:204-227</code>，斜杠用 <code>+</code> 替代）。教学版用 <code>.worktrees/</code> 和 <code>wt/{name}</code> 简化。</p>
+<p>创建时用 <code>git worktree add -B</code>（<code>worktree.ts:326-328</code>），优先基于 <code>origin/&lt;defaultBranch&gt;</code> 而非当前 HEAD。</p>
+<h3 id="状态管理">状态管理</h3>
+<p>CC 没有 task-worktree 绑定。Worktree 状态通过 <code>PersistedWorktreeSession</code>（<code>worktree.ts:756-768</code>）管理，字段包括 <code>originalCwd</code>、<code>worktreePath</code>、<code>worktreeName</code>、<code>worktreeBranch</code>、<code>originalBranch</code>、<code>originalHeadCommit</code>、<code>sessionId</code> 等——没有 taskId。<code>saveWorktreeState()</code>（<code>sessionStorage.ts:2883-2920</code>）以 <code>type: 'worktree-state'</code> 写入 session transcript。</p>
+<p>教学版用 task 的 <code>worktree</code> 字段做绑定，是教学简化。CC 把 worktree 和 task 作为两个独立系统，通过 Agent 理解上下文来关联。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v0, ja@v0 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s17_autonomous_agents/"><span>上一章</span><strong>s17 Autonomous Agents</strong></a><a class="page-link is-next" href="/s19_mcp_plugin/"><span>下一章</span><strong>s19 MCP Plugin</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#创建-任务-worktree-绑定"><span>04</span>创建：任务-Worktree 绑定</a>
+<a class="level-3" href="#队友工具的-cwd-切换"><span>05</span>队友工具的 cwd 切换</a>
+<a class="level-3" href="#收尾-keep-还是-remove"><span>06</span>收尾：Keep 还是 Remove</a>
+<a class="level-3" href="#事件流-可审计"><span>07</span>事件流：可审计</a>
+<a class="level-3" href="#rungit-返回成功-失败"><span>08</span>rungit：返回成功/失败</a>
+<a class="level-2" href="#相对-s17-的变更"><span>09</span>相对 s17 的变更</a>
+<a class="level-2" href="#试一下"><span>10</span>试一下</a>
+<a class="level-2" href="#接下来"><span>11</span>接下来</a>
+<a class="level-3" href="#enterworktree-当前会话切换"><span>12</span>EnterWorktree：当前会话切换</a>
+<a class="level-3" href="#agenttool-isolation-子-agent-隔离"><span>13</span>AgentTool isolation：子 agent 隔离</a>
+<a class="level-3" href="#name-校验"><span>14</span>name 校验</a>
+<a class="level-3" href="#路径和分支命名"><span>15</span>路径和分支命名</a>
+<a class="level-3" href="#状态管理"><span>16</span>状态管理</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

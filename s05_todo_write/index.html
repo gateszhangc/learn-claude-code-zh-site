@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s05: TodoWrite — 没有计划的 Agent，做着做着就偏了 · Learn Claude Code</title>
+    <meta name="description" content="没有计划的 agent 走哪算哪">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s05_todo_write/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s05_todo_write" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s05 / Harness 课程</p>
+        <h1>s05: TodoWrite — 没有计划的 Agent，做着做着就偏了</h1>
+        <p class="lead">没有计划的 agent 走哪算哪。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s04_hooks/"><span>上一章</span><strong>s04 Hooks</strong></a><a class="page-link is-next" href="/s06_subagent/"><span>下一章</span><strong>s06 Subagent</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="is-current" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s05_todo_write" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s05_todo_write</a></p>
+        <h1 id="s05-todowrite-没有计划的-agent-做着做着就偏了">s05: TodoWrite — 没有计划的 Agent，做着做着就偏了</h1>
+<p>s01 → s02 → s03 → s04 → <code>s05</code> → <a href="/s06_subagent/" rel="noopener noreferrer">s06</a> → s07 → ... → s20</p>
+<blockquote><p><em>"没有计划的 agent 走哪算哪"</em> — 先列步骤再动手，长任务更不容易漏项。  <strong>Harness 层</strong>: 规划 — 让 Agent 在动手之前先想清楚。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>给 Agent 一个复杂任务："把所有 Python 文件改成 snake_case 命名，然后跑测试，修好失败。"</p>
+<p>Agent 开始干活，改了 3 个文件，跑了个测试，发现 2 个失败，开始修。修着修着，它忘了最初是"改成 snake_case"，测试失败把注意力全吸走了。</p>
+<p>对话越长越严重：工具结果不断填满上下文，系统提示的影响力被稀释。一个 10 步重构，做完 1-3 步就开始即兴发挥，因为 4-10 步已经被挤出注意力了。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s05_todo_write/images/todo-overview.svg" alt="Todo Overview" loading="lazy"></figure>
+<p>保留上一章的最小 hook 结构，重点看新增的 <code>todo_write</code> 工具和 reminder 机制。<code>todo_write</code> 本身不做任何实际工作，不能读文件、不能跑命令，只是让 Agent 在动手之前先理清思路。</p>
+<p>dispatch 机制不变，新工具仍然走 <code>TOOL_HANDLERS[block.name]</code> 分发。但为了演示 todo reminder，循环里加了一个计数器：连续 3 轮没调 <code>todo_write</code> 就注入一条提醒。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<p><strong>todo_write 工具</strong>，接收一个带状态的列表，保存在当前进程内存中，同时在终端显示进度：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>CURRENT_TODOS: list[dict] = []
+
+def run_todo_write(todos: list) -&gt; str:
+    global CURRENT_TODOS
+    CURRENT_TODOS = todos
+
+    lines = [&quot;\n## Current Tasks&quot;]
+    for t in CURRENT_TODOS:
+        icon = {&quot;pending&quot;: &quot; &quot;, &quot;in_progress&quot;: &quot;▸&quot;, &quot;completed&quot;: &quot;✓&quot;}[t[&quot;status&quot;]]
+        lines.append(f&quot;  [{icon}] {t[&#x27;content&#x27;]}&quot;)
+    print(&quot;\n&quot;.join(lines))
+    return f&quot;Updated {len(CURRENT_TODOS)} tasks&quot;</code></pre></figure>
+<p>工具定义和其他 5 个工具一起加入 dispatch map：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>TOOLS = [
+    {&quot;name&quot;: &quot;bash&quot;,       ...},
+    {&quot;name&quot;: &quot;read_file&quot;,  ...},
+    {&quot;name&quot;: &quot;write_file&quot;, ...},
+    {&quot;name&quot;: &quot;edit_file&quot;,  ...},
+    {&quot;name&quot;: &quot;glob&quot;,       ...},
+    # s05: 新增一条
+    {&quot;name&quot;: &quot;todo_write&quot;, &quot;description&quot;: &quot;Create and manage a task list ...&quot;,
+     &quot;input_schema&quot;: {
+         &quot;type&quot;: &quot;object&quot;,
+         &quot;properties&quot;: {
+             &quot;todos&quot;: {
+                 &quot;type&quot;: &quot;array&quot;,
+                 &quot;items&quot;: {
+                     &quot;type&quot;: &quot;object&quot;,
+                     &quot;properties&quot;: {
+                         &quot;content&quot;: {&quot;type&quot;: &quot;string&quot;},
+                         &quot;status&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;pending&quot;, &quot;in_progress&quot;, &quot;completed&quot;]},
+                     },
+                 },
+             },
+         },
+     },
+    },
+]
+
+TOOL_HANDLERS[&quot;todo_write&quot;] = run_todo_write</code></pre></figure>
+<p><strong>Nag reminder</strong>，模型连续 3 轮没调 <code>todo_write</code> 时，自动注入一条提醒（教学版机制，CC 源码中没有这个固定轮数逻辑）：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>if rounds_since_todo &gt;= 3 and messages:
+    messages.append({
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;&lt;reminder&gt;Update your todos.&lt;/reminder&gt;&quot;,
+    })
+    rounds_since_todo = 0</code></pre></figure>
+<p>Agent 收到任务后的典型流程：先调 <code>todo_write</code> 列出所有步骤（全 <code>pending</code>）→ 做一个步骤，改成 <code>in_progress</code> → 做完改成 <code>completed</code> → 看下一个 <code>pending</code> → 继续。连续 3 轮没有调用 <code>todo_write</code> 时，循环会在下一次 LLM 调用前追加一条 reminder。</p>
+<p><strong>关键洞察</strong>：todo_write 不给 Agent 增加任何<strong>执行能力</strong>。它增加的是<strong>规划能力</strong>。</p>
+<hr class="section-rule">
+<h2 id="相对-s04-的变更">相对 s04 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s04)</th>
+<th>之后 (s05)</th>
+</tr></thead><tbody>
+<tr>
+<td>工具数量</td>
+<td>5 (bash, read, write, edit, glob)</td>
+<td>6 (+todo_write)</td>
+</tr>
+<tr>
+<td>规划能力</td>
+<td>无</td>
+<td>带状态的 TODO 列表 + nag reminder</td>
+</tr>
+<tr>
+<td>SYSTEM 提示</td>
+<td>通用提示</td>
+<td>加入 "先计划再执行" 引导</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>不变</td>
+<td>dispatch 不变，新增 rounds_since_todo 计数器和 reminder 注入</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s05_todo_write/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Refactor s05_todo_write/example/hello.py: add type hints, docstrings, and a main guard</code>（先列 3 步再执行）</li>
+<li><code>Create a Python package under s05_todo_write/example/demo_pkg with __init__.py, utils.py, and tests/test_utils.py</code></li>
+<li><code>Review Python files under s05_todo_write/example and fix any style issues</code></li>
+</ol>
+<p>观察重点：第一次工具调用是不是 <code>todo_write</code>？TODO 列了几步？执行过程中状态有没有从 <code>pending</code> 变成 <code>in_progress</code> / <code>completed</code>？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>Agent 能计划了。但如果一个任务太大，比如"重构整个认证模块"，光靠 TODO 列表不够。这个任务本身就是几十个小任务的集合，放在同一个对话里会被上下文淹没。</p>
+<p>s06 Subagent → 把大任务拆成子任务，每个子任务派一个独立的 Agent。它们有自己的干净上下文，不会互相污染。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<p>CC 中有两套任务系统并存（<code>tasks.ts:133-139</code>）：</p>
+<ul>
+<li><strong>TodoWrite（V1）</strong>：一个简单的列表工具，数据在内存 AppState 中维护（<code>TodoWriteTool.ts:65-103</code>）。教学版也保存在进程内存里，退出后清空</li>
+<li><strong>Task System（V2 = s12）</strong>：文件持久化、依赖图、并发锁、ownership</li>
+</ul>
+<p>切换由 <code>isTodoV2Enabled()</code> 控制。当前源码的实现逻辑：交互式会话中 V2 默认启用，非交互式会话（SDK）中 V1 默认启用；设置 <code>CLAUDE_CODE_ENABLE_TASKS</code> 环境变量可强制启用 V2。注意源码注释 "Force-enable tasks in non-interactive mode" 描述的是 env var 路径的用途，和默认分支的返回值语义不同，阅读时需区分。</p>
+<p>教学版省略了真实源码中的 <code>activeForm</code> 字段（<code>utils/todo/types.ts:8-15</code>）。CC 用它给 UI spinner 展示"正在做什么"，教学版只有终端输出，不需要这个字段。</p>
+<p>教学版的 nag reminder（3 轮未更新就注入提醒）是教学机制。CC 源码中没有固定的"3 轮"逻辑，更接近的是 <code>TodoWriteTool.ts:72-107</code> 中当 3 个以上 todo 全部完成但没有 verification 项时，追加 verification nudge。</p>
+<p>Task System 相比 TodoWrite 的核心增量：</p>
+<ul>
+<li>文件持久化（Claude 配置目录下 <code>tasks/{taskListId}/{taskId}.json</code>）而非内存列表</li>
+<li><code>blockedBy</code> 依赖图而非平铺列表</li>
+<li><code>proper-lockfile</code> 并发安全而非无锁</li>
+<li>四个独立工具（Create/Get/Update/List）而非一个</li>
+<li>TaskCreated / TaskCompleted hooks（<code>TaskCreateTool.ts:80-129</code>、<code>TaskUpdateTool.ts:231-260</code>）供外部系统集成</li>
+</ul>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v1, ja@v1 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s04_hooks/"><span>上一章</span><strong>s04 Hooks</strong></a><a class="page-link is-next" href="/s06_subagent/"><span>下一章</span><strong>s06 Subagent</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-2" href="#相对-s04-的变更"><span>04</span>相对 s04 的变更</a>
+<a class="level-2" href="#试一下"><span>05</span>试一下</a>
+<a class="level-2" href="#接下来"><span>06</span>接下来</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

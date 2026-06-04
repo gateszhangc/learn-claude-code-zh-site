@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s19: MCP Tools — 外接工具，标准协议 · Learn Claude Code</title>
+    <meta name="description" content="能力不够，插上 MCP">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s19_mcp_plugin/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s19_mcp_plugin" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s19 / Harness 课程</p>
+        <h1>s19: MCP Tools — 外接工具，标准协议</h1>
+        <p class="lead">能力不够，插上 MCP。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s18_worktree_isolation/"><span>上一章</span><strong>s18 Worktree Isolation</strong></a><a class="page-link is-next" href="/s20_comprehensive/"><span>下一章</span><strong>s20 Comprehensive</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="is-current" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s19_mcp_plugin" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s19_mcp_plugin</a></p>
+        <h1 id="s19-mcp-tools-外接工具-标准协议">s19: MCP Tools — 外接工具，标准协议</h1>
+<p>s01 → ... → s17 → s18 → <code>s19</code> → <a href="/s20_comprehensive/" rel="noopener noreferrer">s20</a></p>
+<blockquote><p><em>"外接工具, 标准协议"</em> — 发现、组装、调用，Agent 不需要知道工具是谁写的。  <strong>Harness 层</strong>: 插件 — 外部能力通过标准协议接入。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>s01 到 s18，Agent 的所有工具都是手写的——bash、read、write、task、worktree。每个工具的输入验证、执行逻辑、错误处理，都是你一行行写的。</p>
+<p>现在你有 3 个外部服务想接入：公司的 Jira API（查 issue、建 ticket）、自建的部署系统（触发 deploy、看日志）、团队的 Notion 知识库（搜文档、建页面）。你不想为每个服务重写一套工具代码。</p>
+<p>你需要一个标准协议——外部服务只要实现它，Agent 就能直接调用，不管服务用什么语言写的。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s19_mcp_plugin/images/mcp-architecture.svg" alt="MCP Architecture" loading="lazy"></figure>
+<p>MCP（Model Context Protocol）定义了 Agent 如何发现和调用外部工具。核心概念：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>概念</th>
+<th>作用</th>
+</tr></thead><tbody>
+<tr>
+<td>MCPClient</td>
+<td>Agent 端的客户端，连接 server、发现工具、调用工具</td>
+</tr>
+<tr>
+<td>MCP Server</td>
+<td>外部服务，实现 <code>tools/list</code> + <code>tools/call</code></td>
+</tr>
+<tr>
+<td>assemble_tool_pool</td>
+<td>把内置工具和 MCP 工具组装成一个工具池</td>
+</tr>
+<tr>
+<td>mcp\_\_server\_\_tool 命名</td>
+<td>避免不同 server 的工具名冲突</td>
+</tr>
+</tbody></table></div>
+<p>沿用 s18 的教学版 worktree 隔离、自主认领、空闲轮询、协议系统。本章新增：<code>connect_mcp</code> 工具——连接外部服务，发现工具，加入工具池。</p>
+<p>教学版用 mock handler 模拟外部 server。真实版会启动子进程，通过 stdin/stdout 发送 JSON-RPC 请求。mock 的好处是不依赖外部服务就能跑完整流程；代价是你看不到真正的网络通信和进程管理。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<h3 id="mcpclient-发现-调用">MCPClient：发现 + 调用</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>class MCPClient:
+    def __init__(self, name: str):
+        self.name = name
+        self.tools: list[dict] = []
+        self._handlers: dict[str, callable] = {}
+
+    def register(self, tool_defs, handlers):
+        &quot;&quot;&quot;Simulates tools/list discovery.&quot;&quot;&quot;
+        self.tools = tool_defs
+        self._handlers = handlers
+
+    def call_tool(self, tool_name: str, args: dict) -&gt; str:
+        &quot;&quot;&quot;Simulates tools/call.&quot;&quot;&quot;
+        handler = self._handlers.get(tool_name)
+        if not handler:
+            return f&quot;MCP error: unknown tool &#x27;{tool_name}&#x27;&quot;
+        return handler(**args)</code></pre></figure>
+<p>教学版用 Python 函数模拟 server 的工具实现。真实版通过 stdio JSON-RPC 与子进程通信。</p>
+<h3 id="connectmcp-连接-发现">connect_mcp：连接 + 发现</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def connect_mcp(name: str) -&gt; str:
+    if name in mcp_clients:
+        return f&quot;MCP server &#x27;{name}&#x27; already connected&quot;
+    factory = MOCK_SERVERS.get(name)
+    if not factory:
+        return f&quot;Unknown server &#x27;{name}&#x27;. Available: ...&quot;
+    mcp_client = factory()
+    mcp_clients[name] = mcp_client
+    return f&quot;Connected to &#x27;{name}&#x27;. Discovered: ...&quot;</code></pre></figure>
+<p>连接后，server 提供的工具立即可用。</p>
+<h3 id="normalizemcpname-名称规范化">normalize_mcp_name：名称规范化</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>_DISALLOWED_CHARS = re.compile(r&#x27;[^a-zA-Z0-9_-]&#x27;)
+
+def normalize_mcp_name(name: str) -&gt; str:
+    return _DISALLOWED_CHARS.sub(&#x27;_&#x27;, name)</code></pre></figure>
+<p>所有非 <code>[a-zA-Z0-9_-]</code> 的字符替换为 <code>_</code>。防止 server 名或工具名中包含特殊字符导致命名冲突或注入问题。</p>
+<h3 id="assembletoolpool-组装工具池">assemble_tool_pool：组装工具池</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def assemble_tool_pool() -&gt; tuple[list[dict], dict]:
+    tools = list(BUILTIN_TOOLS)
+    handlers = dict(BUILTIN_HANDLERS)
+    for server_name, mcp_client in mcp_clients.items():
+        safe_server = normalize_mcp_name(server_name)
+        for tool_def in mcp_client.tools:
+            safe_tool = normalize_mcp_name(tool_def[&quot;name&quot;])
+            prefixed = f&quot;mcp__{safe_server}__{safe_tool}&quot;
+            tools.append(...)
+            handlers[prefixed] = (
+                lambda *, c=mcp_client, t=tool_def[&quot;name&quot;], **kw:
+                    c.call_tool(t, kw))
+    return tools, handlers</code></pre></figure>
+<p>前缀 <code>mcp__{server}__{tool}</code> 避免不同 server 的工具名冲突。名称经过 <code>normalize_mcp_name</code> 规范化。</p>
+<p>MCP 工具的 description 带 <code>(readOnly)</code> 或 <code>(destructive)</code> 标注——教学版用文本标注，真实 CC 用 tool annotations 结构体让权限系统判断。</p>
+<h3 id="无缓存-工具池变了-prompt-也变">无缓存：工具池变了，prompt 也变</h3>
+<p>s10-s18 的 agent_loop 用 prompt cache 避免重复序列化。s19 去掉了缓存：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages, context):
+    tools, handlers = assemble_tool_pool()     # 每次重新构建
+    system = assemble_system_prompt(context)    # 每次重新生成
+    ...
+    if any(b.name == &quot;connect_mcp&quot; ...):
+        tools, handlers = assemble_tool_pool()  # 连接后重建
+        system = assemble_system_prompt(context)</code></pre></figure>
+<p>原因：<code>connect_mcp</code> 之后工具池变化了——新增了 <code>mcp__docs__search</code> 等工具。缓存中的工具列表是旧的，继续用会导致模型调用不到新工具。教学版直接去掉缓存，代价是多花一点序列化时间。</p>
+<h3 id="mcp-工具只有-lead-可用">MCP 工具只有 Lead 可用</h3>
+<p>教学版中，<code>connect_mcp</code> 是 Lead 工具，<code>assemble_tool_pool</code> 也只服务于 Lead 的 agent_loop。Teammate 仍使用固定的 8 个子集工具（bash、read_file、write_file、send_message、submit_plan、list_tasks、claim_task、complete_task）。</p>
+<p>这是教学简化。真实 CC 中，MCP 工具对主 agent 和子 agent 都可用——子 agent 继承父级的 MCP 配置。</p>
+<hr class="section-rule">
+<h2 id="相对-s18-的变更">相对 s18 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s18)</th>
+<th>之后 (s19)</th>
+</tr></thead><tbody>
+<tr>
+<td>工具来源</td>
+<td>全部手写 builtin</td>
+<td>手写 + MCP 外部工具动态发现</td>
+</tr>
+<tr>
+<td>工具池</td>
+<td>固定 BUILTIN_TOOLS</td>
+<td>assemble_tool_pool 动态组装 mcp\_\_ 前缀工具</td>
+</tr>
+<tr>
+<td>名称安全</td>
+<td>无</td>
+<td>normalize_mcp_name 规范化</td>
+</tr>
+<tr>
+<td>新类型</td>
+<td>—</td>
+<td>MCPClient 类（模拟 tools/list + tools/call）</td>
+</tr>
+<tr>
+<td>命名空间</td>
+<td>—</td>
+<td>mcp\_\_server\_\_tool 避免冲突</td>
+</tr>
+<tr>
+<td>工具描述</td>
+<td>无标注</td>
+<td>(readOnly)/(destructive) 标注</td>
+</tr>
+<tr>
+<td>prompt 缓存</td>
+<td>有（s10 起）</td>
+<td>去掉——工具池动态变化后缓存失效</td>
+</tr>
+<tr>
+<td>Lead 工具</td>
+<td>17 (s18)</td>
+<td>18 (+connect_mcp)</td>
+</tr>
+<tr>
+<td>Teammate 工具</td>
+<td>8 (s18)</td>
+<td>8（不变，MCP 工具仅 Lead 可用）</td>
+</tr>
+<tr>
+<td>扩展方式</td>
+<td>写代码加工具</td>
+<td>标准协议，任意语言实现 server</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s19_mcp_plugin/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Connect to the docs MCP server and search for something</code></li>
+<li><code>Connect to the deploy server and trigger a deployment</code></li>
+<li><code>Connect both servers — what tools are now available?</code></li>
+</ol>
+<p>观察重点：连接 MCP server 后，工具名是否带 <code>mcp__docs__</code> 或 <code>mcp__deploy__</code> 前缀？两个 server 的工具是否同时可用？MCP 工具的 description 是否带 (readOnly)/(destructive) 标注？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>现在 Agent 可以通过标准协议接入外部工具了。但前面 19 章每章都只加一个机制，真实 Agent 不会这样拆开运行。</p>
+<p>工具、权限、hooks、todo、任务图、记忆、压缩、后台、cron、团队、worktree、MCP 这些机制应该挂在同一个循环上，而不是散在 19 个 demo 里。</p>
+<p>s20 Comprehensive Agent → 把前 19 章的机制合回一个完整 harness。机制很多，循环一个。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>services/mcp/client.ts</code>、<code>auth.ts</code>、<code>config.ts</code>、<code>channelNotification.ts</code> 的分析。</p></blockquote>
+<h3 id="一-6-种-transport-类型">一、6 种 Transport 类型</h3>
+<p>教学版只展示了 stdio mock。CC 支持 6 种传输（<code>types.ts:23-25</code>）：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Transport</th>
+<th>通信方式</th>
+</tr></thead><tbody>
+<tr>
+<td><code>stdio</code></td>
+<td>子进程 stdin/stdout（跨平台默认）</td>
+</tr>
+<tr>
+<td><code>sse</code></td>
+<td>HTTP Server-Sent Events</td>
+</tr>
+<tr>
+<td><code>http</code></td>
+<td>Streamable HTTP（POST/SSE 双向）</td>
+</tr>
+<tr>
+<td><code>ws</code></td>
+<td>WebSocket</td>
+</tr>
+<tr>
+<td><code>sse-ide</code></td>
+<td>IDE 内嵌 SSE 传输</td>
+</tr>
+<tr>
+<td><code>sdk</code></td>
+<td>进程内 SDK 传输</td>
+</tr>
+</tbody></table></div>
+<p>连接时本地（stdio）和远程（http/sse/ws）服务器分批并发：本地批量 3 个，远程批量 20 个。</p>
+<h3 id="二-工具池组装算法">二、工具池组装算法</h3>
+<p><code>assembleToolPool()</code>（<code>tools.ts:345-364</code>）：</p>
+<figure class="code-block"><figcaption>typescript</figcaption><pre><code>// 去重时优先保留内置工具（name 相同时内置在前）
+return uniqBy(
+  [...builtInTools.sort(byName), ...filteredMcpTools.sort(byName)],
+  &#x27;name&#x27;,
+)</code></pre></figure>
+<p>内置工具和 MCP 工具分开排序，不是合起来排。原因是 CC 的 <code>claude_code_system_cache_policy</code> 在最后一个内置工具之后的某个位置放全局缓存断点——混排会破坏这个设计。</p>
+<h3 id="三-命名规则-mcpservertool">三、命名规则：<code>mcp__server__tool</code></h3>
+<p><code>buildMcpToolName()</code>（<code>mcpStringUtils.ts:50-52</code>）：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>mcp__&lt;normalizedServerName&gt;__&lt;normalizedToolName&gt;</code></pre></figure>
+<p>所有非 <code>[a-zA-Z0-9_-]</code> 字符替换为 <code>_</code>（<code>normalization.ts:17-23</code>）。教学版的 <code>normalize_mcp_name</code> 用同样的规则。</p>
+<h3 id="四-权限检查">四、权限检查</h3>
+<p>CC 对 MCP 工具有独立的权限系统。<code>checkPermissions()</code> 对 MCP 工具的检查逻辑不同于内置工具——MCP 工具可以声明自己的权限需求（readOnly、destructive 等），CC 根据声明决定是否需要用户确认。教学版只在 description 中用文本标注 <code>(readOnly)</code> / <code>(destructive)</code>，不做权限拦截。</p>
+<h3 id="五-配置来源与优先级">五、配置来源与优先级</h3>
+<p>MCP 服务器配置来自多个来源。CC 的配置优先级从低到高：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>claude.ai 连接器 &lt; plugin &lt; user settings.json &lt; approved project .mcp.json &lt; local settings.local.json</code></pre></figure>
+<p><code>claude.ai</code> 连接器单独拉取、按内容签名去重，以最低优先级合并（<code>config.ts:1267-1289</code>）。企业 <code>managed-mcp.json</code> 存在时完全排除其他配置。</p>
+<p>教学版直接传 server name 给 <code>MOCK_SERVERS</code> 字典，不做配置合并。</p>
+<h3 id="六-channel-通知-服务器反向推消息">六、Channel 通知：服务器反向推消息</h3>
+<p>教学版只讲了 Agent → MCP Server 的单向调用。CC 还支持反向通知（<code>channelNotification.ts</code>）：</p>
+<ol>
+<li>Server 声明 <code>capabilities.experimental['claude/channel']</code></li>
+<li>Server 通过 MCP 通知 <code>notifications/claude/channel</code> 给 Agent 发消息</li>
+<li>消息包装在 <code>&lt;channel source="serverName"&gt;...&lt;/channel&gt;</code> XML 标签中</li>
+<li>Agent 被 SleepTool 唤醒（1 秒内）</li>
+</ol>
+<p>Server 还可以请求权限：<code>notifications/claude/channel/permission_request</code> → Agent 回复 <code>notifications/claude/channel/permission</code>。用户通过 5 字母短 ID 确认/拒绝。</p>
+<h3 id="七-oauth-认证流程">七、OAuth 认证流程</h3>
+<p>CC 的 MCP 认证（<code>auth.ts</code>）支持完整的 OAuth 2.0 + PKCE 流程：</p>
+<ul>
+<li>通过公钥客户端 + PKCE 发现 OAuth 元数据（RFC 8414 / RFC 9728）</li>
+<li>本地回调服务器接收授权码</li>
+<li>令牌通过 <code>getSecureStorage()</code> 持久化（macOS Keychain / Linux 加密文件 / Windows 凭据管理器）</li>
+<li>过期前 5 分钟自动刷新</li>
+<li>支持跨应用访问（XAA）：浏览器获取 id_token → RFC 8693 + RFC 7523 交换 → 无需反复弹浏览器</li>
+</ul>
+<h3 id="八-连接生命周期的错误处理">八、连接生命周期的错误处理</h3>
+<p>CC 对 MCP 连接有精细的错误分类和重试（<code>client.ts:1266-1402</code>）：</p>
+<ul>
+<li>终局性错误（ECONNRESET、ETIMEDOUT、EPIPE 等）：连续 3 次 → 关闭 + 重连</li>
+<li>工具调用 401：令牌过期 → 抛出 <code>McpAuthError</code> → 触发重认证</li>
+<li>工具调用超时：<code>Promise.race</code> 超时（可配置，默认约 28 小时）</li>
+<li>Stdio 断连：按 SIGINT → SIGTERM → SIGKILL 顺序杀进程</li>
+</ul>
+<h3 id="教学版的简化">教学版的简化</h3>
+<ul>
+<li>6 种 transport → 1 种（mock stdio）：概念量可控</li>
+<li>Channel 反向通知 → 省略：教学版 Agent 是主动方</li>
+<li>OAuth 流程 → 省略：教学版假设 server 不需要认证</li>
+<li>多层配置优先级 → 省略：教学版直接传 server name</li>
+<li>复杂的错误分类 → 省略：教学版用 try/except 兜底</li>
+<li>MCP 工具只给 Lead → 省略子 agent 继承：简化代码结构</li>
+</ul>
+</details>
+<p>&lt;!-- translation-sync: zh@v2, en@v0, ja@v0 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s18_worktree_isolation/"><span>上一章</span><strong>s18 Worktree Isolation</strong></a><a class="page-link is-next" href="/s20_comprehensive/"><span>下一章</span><strong>s20 Comprehensive</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#mcpclient-发现-调用"><span>04</span>MCPClient：发现 + 调用</a>
+<a class="level-3" href="#connectmcp-连接-发现"><span>05</span>connectmcp：连接 + 发现</a>
+<a class="level-3" href="#normalizemcpname-名称规范化"><span>06</span>normalizemcpname：名称规范化</a>
+<a class="level-3" href="#assembletoolpool-组装工具池"><span>07</span>assembletoolpool：组装工具池</a>
+<a class="level-3" href="#无缓存-工具池变了-prompt-也变"><span>08</span>无缓存：工具池变了，prompt 也变</a>
+<a class="level-3" href="#mcp-工具只有-lead-可用"><span>09</span>MCP 工具只有 Lead 可用</a>
+<a class="level-2" href="#相对-s18-的变更"><span>10</span>相对 s18 的变更</a>
+<a class="level-2" href="#试一下"><span>11</span>试一下</a>
+<a class="level-2" href="#接下来"><span>12</span>接下来</a>
+<a class="level-3" href="#一-6-种-transport-类型"><span>13</span>一、6 种 Transport 类型</a>
+<a class="level-3" href="#二-工具池组装算法"><span>14</span>二、工具池组装算法</a>
+<a class="level-3" href="#三-命名规则-mcpservertool"><span>15</span>三、命名规则：mcpservertool</a>
+<a class="level-3" href="#四-权限检查"><span>16</span>四、权限检查</a>
+<a class="level-3" href="#五-配置来源与优先级"><span>17</span>五、配置来源与优先级</a>
+<a class="level-3" href="#六-channel-通知-服务器反向推消息"><span>18</span>六、Channel 通知：服务器反向推消息</a>
+<a class="level-3" href="#七-oauth-认证流程"><span>19</span>七、OAuth 认证流程</a>
+<a class="level-3" href="#八-连接生命周期的错误处理"><span>20</span>八、连接生命周期的错误处理</a>
+<a class="level-3" href="#教学版的简化"><span>21</span>教学版的简化</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

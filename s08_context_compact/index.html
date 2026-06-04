@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s08: Context Compact — 上下文总会满，要有办法腾地方 · Learn Claude Code</title>
+    <meta name="description" content="上下文总会满，要有办法腾地方">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s08_context_compact/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s08_context_compact" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s08 / Harness 课程</p>
+        <h1>s08: Context Compact — 上下文总会满，要有办法腾地方</h1>
+        <p class="lead">上下文总会满，要有办法腾地方。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s07_skill_loading/"><span>上一章</span><strong>s07 Skill Loading</strong></a><a class="page-link is-next" href="/s09_memory/"><span>下一章</span><strong>s09 Memory</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="is-current" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s08_context_compact" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s08_context_compact</a></p>
+        <h1 id="s08-context-compact-上下文总会满-要有办法腾地方">s08: Context Compact — 上下文总会满，要有办法腾地方</h1>
+<p>s01 → s02 → s03 → s04 → s05 → s06 → s07 → <code>s08</code> → <a href="/s09_memory/" rel="noopener noreferrer">s09</a> → s10 → ... → s20</p>
+<blockquote><p><em>"上下文总会满, 要有办法腾地方"</em> — 四层压缩策略, 便宜的先跑贵的后跑。  <strong>Harness 层</strong>: 压缩 — 干净的记忆, 无限的会话。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>Agent 跑着跑着，不动了。</p>
+<p>手里有 bash、有 read、有 write，能力是够的。但它读了一个 1000 行的文件（~4000 token），又读了 30 个文件，跑了 20 条命令。每条命令的输出、每个文件的内容，全都堆在 <code>messages</code> 列表里。</p>
+<p>上下文窗口是有限的。满了之后，API 直接拒绝：<code>prompt_too_long</code>。</p>
+<p>不压缩，Agent 根本没法在大项目里干活。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s08_context_compact/images/compact-overview.svg" alt="Compact Overview" loading="lazy"></figure>
+<p>保留 s07 的 hook 结构、技能加载、子 Agent 等骨架，省略部分工具细节以聚焦压缩。核心变动：每轮 LLM 调用前插入三层预处理器（0 API），token 仍超阈值时触发 LLM 摘要（1 API），API 报错时应急裁剪。</p>
+<p>核心设计：便宜的先跑，贵的后跑。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s08_context_compact/images/compaction-layers.svg" alt="四层压缩管线" loading="lazy"></figure>
+<h3 id="l1-snipcompact-裁掉无关的旧对话">L1: snip_compact — 裁掉无关的旧对话</h3>
+<p>Agent 跑了 80 轮对话，<code>messages</code> 攒了 160 条。最前面的"帮我创建 hello.py"和当前工作几乎无关了，但全占着位置。</p>
+<p>消息数超过 50 条 → 保留头部 3 条（初始上下文）和尾部 47 条（当前工作），中间裁掉：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def snip_compact(messages, max_messages=50):
+    if len(messages) &lt;= max_messages:
+        return messages
+    keep_head, keep_tail = 3, max_messages - 3
+    snipped = len(messages) - keep_head - keep_tail
+    placeholder = {&quot;role&quot;: &quot;user&quot;,
+                   &quot;content&quot;: f&quot;[snipped {snipped} messages from conversation middle]&quot;}
+    return messages[:keep_head] + [placeholder] + messages[-keep_tail:]</code></pre></figure>
+<p>裁掉了整条消息，但剩下的消息里 <code>tool_result</code> 内容仍在累积——第 34 条消息里可能躺着 30KB 的旧文件内容。→ L2。</p>
+<h3 id="l2-microcompact-旧工具结果占位">L2: micro_compact — 旧工具结果占位</h3>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s08_context_compact/images/micro-compact.svg" alt="旧结果占位" loading="lazy"></figure>
+<p>Agent 连续读了 10 个文件。第 1-7 次的完整内容还躺在上下文里，早就不需要了，但占着大量空间。</p>
+<p>只保留最近 3 条 <code>tool_result</code> 的完整内容，更旧的替换为一行占位符：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>KEEP_RECENT_TOOL_RESULTS = 3
+
+def micro_compact(messages):
+    tool_results = collect_tool_result_blocks(messages)
+    if len(tool_results) &lt;= KEEP_RECENT_TOOL_RESULTS:
+        return messages
+    for _, _, block in tool_results[:-KEEP_RECENT_TOOL_RESULTS]:
+        if len(block.get(&quot;content&quot;, &quot;&quot;)) &gt; 120:
+            block[&quot;content&quot;] = &quot;[Earlier tool result compacted. Re-run if needed.]&quot;
+    return messages</code></pre></figure>
+<p>旧结果清掉了，但单条新结果可能就有 500KB——一个 <code>cat</code> 大文件的输出就能打满上下文。→ L3。</p>
+<h3 id="l3-toolresultbudget-大结果落盘">L3: tool_result_budget — 大结果落盘</h3>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s08_context_compact/images/layer1-budget.svg" alt="大结果落盘" loading="lazy"></figure>
+<p>模型一次读了 5 个大文件，单条 user 消息里所有 <code>tool_result</code> 加起来 500KB。</p>
+<p>统计最后一条 user 消息里所有 <code>tool_result</code> 的总大小。超过 200KB → 按大小排序，从最大的开始落盘到 <code>.task_outputs/tool-results/</code>，上下文里只留 <code>&lt;persisted-output&gt;</code> 标记 + 前 2000 字符预览。模型看到标记后知道完整内容在磁盘上，需要时可以重新读。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def tool_result_budget(messages, max_bytes=200_000):
+    last = messages[-1]
+    blocks = [(i, b) for i, b in enumerate(last[&quot;content&quot;])
+              if b.get(&quot;type&quot;) == &quot;tool_result&quot;]
+    total = sum(len(str(b.get(&quot;content&quot;, &quot;&quot;))) for _, b in blocks)
+    if total &lt;= max_bytes:
+        return messages
+    ranked = sorted(blocks, key=lambda p: len(str(p[1].get(&quot;content&quot;, &quot;&quot;))), reverse=True)
+    for idx, block in ranked:
+        if total &lt;= max_bytes:
+            break
+        block[&quot;content&quot;] = persist_large_output(block[&quot;tool_use_id&quot;], str(block[&quot;content&quot;]))
+        total = recalculate_total(blocks)
+    return messages</code></pre></figure>
+<p>前三层都是纯文本/结构操作，0 API 调用，但也无法"理解"对话内容。上下文可能仍然太大。→ L4。</p>
+<h3 id="l4-compacthistory-llm-全量摘要">L4: compact_history — LLM 全量摘要</h3>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s08_context_compact/images/auto-compact.svg" alt="LLM 全量摘要" loading="lazy"></figure>
+<p>前三层全跑完了，但在超大项目中连续工作 30 分钟后，token 仍然超过阈值。</p>
+<p>三步流程：</p>
+<ol>
+<li><strong>保存 transcript</strong>：完整对话写入 <code>.transcripts/</code>，JSONL 格式。transcript 保留了可恢复记录，但模型的活跃上下文里只剩摘要。对模型当下推理来说，细节已经不在上下文中了。教学代码没有提供 transcript 检索工具。</li>
+<li><strong>LLM 生成摘要</strong>：把对话历史发给 LLM，要求保留当前目标、重要发现、已改文件、剩余工作、用户约束等关键信息。</li>
+<li><strong>替换消息列表</strong>：所有旧消息被替换为一条摘要。教学版只保留摘要；真实 Claude Code 会在 compact 后重新附加部分最近文件、计划、agent/skill/tool 等上下文。</li>
+</ol>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def compact_history(messages):
+    transcript_path = write_transcript(messages)  # 先保存完整对话
+    summary = summarize_history(messages)          # LLM 生成摘要
+    return [{&quot;role&quot;: &quot;user&quot;,
+             &quot;content&quot;: f&quot;[Compacted]\n\n{summary}&quot;}]</code></pre></figure>
+<p><strong>熔断器</strong>：连续失败 3 次后停止重试，防止死循环浪费 API 调用。</p>
+<h3 id="应急-reactivecompact">应急: reactive_compact</h3>
+<p>有时候 API 还是返回 <code>prompt_too_long</code>（413），上下文增长速度快于压缩触发速度时。</p>
+<p>这时触发 <strong>reactive_compact</strong>：比 compact_history 更激进，从尾部回退，以字节级精度裁剪到 API 可接受的大小，只保留最后 5 条消息 + 摘要。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def reactive_compact(messages):
+    transcript = write_transcript(messages)
+    summary = summarize_history(messages)
+    tail = messages[-5:]
+    return [{&quot;role&quot;: &quot;user&quot;,
+             &quot;content&quot;: f&quot;[Reactive compact]\n\n{summary}&quot;}, *tail]</code></pre></figure>
+<p>reactive compact 有重试上限（默认 1 次）。再失败就抛出异常，不无限循环。完整的错误恢复逻辑留给 s11。</p>
+<h3 id="合起来跑">合起来跑</h3>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages):
+    reactive_retries = 0
+    while True:
+        # 三个预处理器（0 API 调用）
+        # 顺序：budget 先跑，确保大内容落盘后再做占位和裁剪
+        messages[:] = tool_result_budget(messages)    # L3: 大结果落盘
+        messages[:] = snip_compact(messages)          # L1: 裁中间
+        messages[:] = micro_compact(messages)         # L2: 旧结果占位
+
+        # 还不够？LLM 摘要（1 API 调用）
+        if estimate_token_count(messages) &gt; THRESHOLD:
+            messages[:] = compact_history(messages)
+
+        try:
+            response = client.messages.create(...)
+        except PromptTooLongError:
+            if reactive_retries &lt; MAX_REACTIVE_RETRIES:
+                messages[:] = reactive_compact(messages)  # 应急
+                reactive_retries += 1
+                continue
+            raise  # 超过重试上限，抛出异常
+        # ... 工具执行 ...
+
+        # compact 工具：模型主动调用时触发 compact_history
+        if block.name == &quot;compact&quot;:
+            messages[:] = compact_history(messages)
+            results.append({..., &quot;content&quot;: &quot;[Compacted. History summarized.]&quot;})
+            messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})
+            break  # 结束当前 turn，用压缩后的上下文开始新一轮</code></pre></figure>
+<p><strong>顺序不能换。</strong> L3（budget）在 L2（micro）前面，因为 micro 会把旧的大 tool_result 替换成一行占位符，budget 必须在那之前把完整内容落盘。这也是为什么 CC 源码把 <code>applyToolResultBudget</code> 放在最前面。</p>
+<hr class="section-rule">
+<h2 id="相对-s07-的变更">相对 s07 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s07)</th>
+<th>之后 (s08)</th>
+</tr></thead><tbody>
+<tr>
+<td>上下文管理</td>
+<td>无（上下文无限膨胀）</td>
+<td>四层压缩管线 + 应急</td>
+</tr>
+<tr>
+<td>新函数</td>
+<td>—</td>
+<td>snip_compact, micro_compact, tool_result_budget, compact_history, reactive_compact</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>bash, read, write, edit, glob, todo_write, task, load_skill (8)</td>
+<td>8 + compact (9)</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>LLM 调用 → 工具执行</td>
+<td>每轮前跑三层预处理器 + 阈值触发 compact_history</td>
+</tr>
+<tr>
+<td>设计原则</td>
+<td>—</td>
+<td>便宜的先跑，贵的后跑</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s08_context_compact/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Read the file README.md, then read code.py, then read s01_agent_loop/README.md</code>（连续读多个文件，观察 L2 压缩旧结果）</li>
+<li><code>Read every file in s08_context_compact/</code>（一次性读大量内容，观察 L3 落盘）</li>
+<li>反复对话 20+ 轮，观察是否出现 <code>[auto compact]</code> 或 <code>[reactive compact]</code></li>
+</ol>
+<p>观察重点：每次工具执行后，旧 tool_result 是否被压缩？连续对话后 token 超阈值时，是否自动触发了摘要？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>上下文压缩让 Agent 能跑很久不会崩。但每次压缩后，用户之前告诉它的偏好、约束也跟着丢了。能不能让 Agent 有选择地记住重要的事？</p>
+<p>s09 Memory → 三个子系统：选择记什么、提取关键信息、整理巩固。跨压缩、跨会话。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>compact.ts</code>、<code>autoCompact.ts</code>、<code>microCompact.ts</code>、<code>query.ts</code> 的分析。</p></blockquote>
+<h3 id="执行顺序对照">执行顺序对照</h3>
+<p>教学版为了讲解方便按 L1/L2/L3/L4 编号，但实际执行顺序和编号不完全对应：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>维度</th>
+<th>教学版</th>
+<th>Claude Code</th>
+</tr></thead><tbody>
+<tr>
+<td>执行顺序</td>
+<td>budget → snip → micro → auto</td>
+<td>budget → snip → micro → collapse → auto（<code>query.ts:379-468</code>）</td>
+</tr>
+<tr>
+<td>snip_compact</td>
+<td>保留头 3 + 尾 47</td>
+<td>CC 仅主线程启用；实现不在开源仓库中（<code>HISTORY_SNIP</code> feature gate），但接口可见：<code>snipCompactIfNeeded(messages)</code> → <code>{ messages, tokensFreed, boundaryMessage? }</code>，还暴露了 <code>SnipTool</code> 工具让模型主动调用。教学版的 3/47 是简化参数</td>
+</tr>
+<tr>
+<td>micro_compact</td>
+<td>文本占位符替换</td>
+<td>两条路径：time-based 直接清内容，cached 走 API <code>cache_edits</code>（legacy path 已移除）</td>
+</tr>
+<tr>
+<td>micro_compact 白名单</td>
+<td>按位置（最近 3 条）</td>
+<td>time-based 按时间阈值触发；cached 按计数触发（<code>microCompact.ts</code>）</td>
+</tr>
+<tr>
+<td>tool_result_budget</td>
+<td>200KB 字符</td>
+<td>200,000 字符（<code>toolLimits.ts:49</code>）</td>
+</tr>
+<tr>
+<td>compact_history 阈值</td>
+<td>字符数估算</td>
+<td>精确 token：<code>contextWindow - maxOutputTokens - 13_000</code></td>
+</tr>
+<tr>
+<td>摘要要求</td>
+<td>5 类信息</td>
+<td>9 个部分 + <code>&lt;analysis&gt;</code>/<code>&lt;summary&gt;</code> 双标签</td>
+</tr>
+<tr>
+<td>压缩 prompt</td>
+<td>简单 prompt</td>
+<td>首尾双重防呆禁止调工具</td>
+</tr>
+<tr>
+<td>PTL retry</td>
+<td>有（简化）</td>
+<td><code>truncateHeadForPTLRetry()</code> 按消息组回退（<code>compact.ts:243-290</code>）</td>
+</tr>
+<tr>
+<td>后压缩恢复</td>
+<td>无（教学版只保留摘要）</td>
+<td>自动重新读取最近文件、计划、agent/skill/tool 等</td>
+</tr>
+<tr>
+<td>熔断器</td>
+<td>3 次</td>
+<td>3 次（<code>autoCompact.ts:70</code>）</td>
+</tr>
+<tr>
+<td>reactive 重试</td>
+<td>1 次</td>
+<td>CC 有更精细的分级重试</td>
+</tr>
+</tbody></table></div>
+<h3 id="执行顺序详解">执行顺序详解</h3>
+<p>CC 源码 <code>query.ts</code> 中的真实顺序：</p>
+<ol>
+<li><code>applyToolResultBudget</code>（L379）：先处理大结果，确保完整内容落盘</li>
+<li><code>snipCompact</code>（L403）：裁中间消息</li>
+<li><code>microcompact</code>（L414）：旧结果占位</li>
+<li><code>contextCollapse</code>（L441）：独立的上下文管理系统（教学版无）</li>
+<li><code>autoCompact</code>（L454）：LLM 全量摘要</li>
+</ol>
+<p>教学版的 budget → snip → micro 顺序与此一致。教学版没有 contextCollapse 机制。</p>
+<h3 id="readfile-的取舍">read_file 的取舍</h3>
+<p>教学版的 <code>micro_compact</code> 会把旧 <code>tool_result</code> 统一替换成占位符，包括 <code>read_file</code>。这通常不影响功能正确性：如果后续还需要文件内容，模型可以重新读一次。代价是可能多一次工具调用，也可能降低 prompt cache 命中率。</p>
+<p>Claude Code 没有用教学版这种简单规则解决这个问题。它把 <code>Read</code> 也放进可 microcompact 的工具集合，但同时维护 <code>readFileState</code>：重复读取未变化文件时返回 <code>FILE_UNCHANGED_STUB</code>，compact 后再按预算恢复最近读过的文件内容（例如最多 5 个文件、每个 5K token、总预算 50K token）。这是生产级实现里的缓存和恢复机制，教学版不展开，保留“压缩旧结果，必要时重新读取”的简单 trade-off。</p>
+<h3 id="完整常量参考">完整常量参考</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>常量</th>
+<th>值</th>
+<th>源文件</th>
+</tr></thead><tbody>
+<tr>
+<td><code>AUTOCOMPACT_BUFFER_TOKENS</code></td>
+<td>13,000</td>
+<td><code>autoCompact.ts:62</code></td>
+</tr>
+<tr>
+<td><code>MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES</code></td>
+<td>3</td>
+<td><code>autoCompact.ts:70</code></td>
+</tr>
+<tr>
+<td><code>MAX_OUTPUT_TOKENS_FOR_SUMMARY</code></td>
+<td>20,000</td>
+<td><code>autoCompact.ts:30</code></td>
+</tr>
+<tr>
+<td><code>POST_COMPACT_TOKEN_BUDGET</code></td>
+<td>50,000</td>
+<td><code>compact.ts:123</code></td>
+</tr>
+<tr>
+<td><code>POST_COMPACT_MAX_FILES_TO_RESTORE</code></td>
+<td>5</td>
+<td><code>compact.ts:122</code></td>
+</tr>
+<tr>
+<td><code>POST_COMPACT_MAX_TOKENS_PER_FILE</code></td>
+<td>5,000</td>
+<td><code>compact.ts:124</code></td>
+</tr>
+<tr>
+<td>时间 micro_compact 间隔</td>
+<td>60 分钟</td>
+<td><code>timeBasedMCConfig.ts</code></td>
+</tr>
+<tr>
+<td><code>MAX_COMPACT_STREAMING_RETRIES</code></td>
+<td>2</td>
+<td><code>compact.ts:131</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="contextcollapse-和-sessionmemorycompact">contextCollapse 和 sessionMemoryCompact</h3>
+<p>CC 源码中还有两个机制本教学版没有展开：</p>
+<ul>
+<li><strong>contextCollapse</strong>：独立的上下文管理系统，启用时抑制 proactive autocompact（<code>autoCompact.ts:215-222</code>），由 collapse 的 commit/blocking 流程接管上下文管理。但 manual <code>/compact</code> 和 reactive fallback 仍是独立路径，不受 contextCollapse 影响。</li>
+<li><strong>sessionMemoryCompact</strong>：compact_history 之前，CC 会先尝试用已有的 session memory（s09 会讲到）做轻量摘要，不调 LLM。这个机制等学完 s09 之后回头看会更清楚。</li>
+</ul>
+<h3 id="压缩-prompt-长什么样">压缩 prompt 长什么样？</h3>
+<p>CC 的压缩 prompt 有两个硬性要求：</p>
+<ol>
+<li><strong>绝对禁止调用工具</strong>：开头就是 <code>CRITICAL: Respond with TEXT ONLY. Do NOT call any tools.</code>，末尾还会再 REMINDER 一次</li>
+<li><strong>先分析再总结</strong>：模型需要先在 <code>&lt;analysis&gt;</code> 标签里理清思路，然后在 <code>&lt;summary&gt;</code> 标签里输出正式摘要。analysis 在格式化时被剥离</li>
+</ol>
+<h3 id="教学版的简化是刻意的">教学版的简化是刻意的</h3>
+<ul>
+<li>micro_compact 用文本占位 → 我们没有 API 层的 <code>cache_edits</code> 权限</li>
+<li>read_file 不特殊处理 → 教学版接受必要时重新读取，避免引入 readFileState 和后压缩恢复机制</li>
+<li>token 用字符数估算 → 精确 tokenizer 不在教学范围内</li>
+<li>后压缩恢复省略 → 教学版只保留摘要，不自动重新附加文件</li>
+<li>两个辅助机制不展开 → 属于 10% 的细节</li>
+</ul>
+<p>核心设计思想，便宜的先跑贵的后跑，完整保留。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v2, en@v2, ja@v2 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s07_skill_loading/"><span>上一章</span><strong>s07 Skill Loading</strong></a><a class="page-link is-next" href="/s09_memory/"><span>下一章</span><strong>s09 Memory</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-3" href="#l1-snipcompact-裁掉无关的旧对话"><span>04</span>L1: snipcompact — 裁掉无关的旧对话</a>
+<a class="level-3" href="#l2-microcompact-旧工具结果占位"><span>05</span>L2: microcompact — 旧工具结果占位</a>
+<a class="level-3" href="#l3-toolresultbudget-大结果落盘"><span>06</span>L3: toolresultbudget — 大结果落盘</a>
+<a class="level-3" href="#l4-compacthistory-llm-全量摘要"><span>07</span>L4: compacthistory — LLM 全量摘要</a>
+<a class="level-3" href="#应急-reactivecompact"><span>08</span>应急: reactivecompact</a>
+<a class="level-3" href="#合起来跑"><span>09</span>合起来跑</a>
+<a class="level-2" href="#相对-s07-的变更"><span>10</span>相对 s07 的变更</a>
+<a class="level-2" href="#试一下"><span>11</span>试一下</a>
+<a class="level-2" href="#接下来"><span>12</span>接下来</a>
+<a class="level-3" href="#执行顺序对照"><span>13</span>执行顺序对照</a>
+<a class="level-3" href="#执行顺序详解"><span>14</span>执行顺序详解</a>
+<a class="level-3" href="#readfile-的取舍"><span>15</span>readfile 的取舍</a>
+<a class="level-3" href="#完整常量参考"><span>16</span>完整常量参考</a>
+<a class="level-3" href="#contextcollapse-和-sessionmemorycompact"><span>17</span>contextCollapse 和 sessionMemoryCompact</a>
+<a class="level-3" href="#压缩-prompt-长什么样"><span>18</span>压缩 prompt 长什么样？</a>
+<a class="level-3" href="#教学版的简化是刻意的"><span>19</span>教学版的简化是刻意的</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

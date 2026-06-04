@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s07: Skill Loading — 用到的时候才加载 · Learn Claude Code</title>
+    <meta name="description" content="用到时再加载">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s07_skill_loading/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s07_skill_loading" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s07 / Harness 课程</p>
+        <h1>s07: Skill Loading — 用到的时候才加载</h1>
+        <p class="lead">用到时再加载。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><a class="page-link" href="/s06_subagent/"><span>上一章</span><strong>s06 Subagent</strong></a><a class="page-link is-next" href="/s08_context_compact/"><span>下一章</span><strong>s08 Context Compact</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="is-current" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s07_skill_loading" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s07_skill_loading</a></p>
+        <h1 id="s07-skill-loading-用到的时候才加载">s07: Skill Loading — 用到的时候才加载</h1>
+<p>s01 → s02 → s03 → s04 → s05 → s06 → <code>s07</code> → <a href="/s08_context_compact/" rel="noopener noreferrer">s08</a> → s09 → ... → s20</p>
+<blockquote><p><em>"用到时再加载, 别全塞 prompt 里"</em> — 通过 tool_result 注入, 不塞 system prompt。  <strong>Harness 层</strong>: 知识 — 按需加载, 不堆满上下文。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>你的项目有一套 React 组件规范、一份 SQL 风格指南、一份 API 设计文档。你希望 Agent 自动遵守这些规范。最直接的想法，全塞进 system prompt：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>SYSTEM = (
+    f&quot;You are a coding agent. &quot;
+    + open(&quot;docs/react-style.md&quot;).read()       # 2000 行
+    + open(&quot;docs/sql-style.md&quot;).read()         # 1500 行
+    + open(&quot;docs/api-design.md&quot;).read()        # 3000 行
+)</code></pre></figure>
+<p>6500 行 system prompt。Agent 每次调用 LLM 都带着这些文档——不管是在改 CSS 颜色还是修 SQL 查询。99% 的内容和当前任务无关，白白消耗 token。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s07_skill_loading/images/skill-overview.svg" alt="Skill Overview" loading="lazy"></figure>
+<p>保留上一章的最小 hook 结构、<code>todo_write</code> 和子 Agent，本章重点转向新增的 <code>load_skill</code> 工具。启动时把技能目录注入 SYSTEM prompt，运行时多注册一个工具加载完整内容，用到才花 token。</p>
+<p>两层设计：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>层</th>
+<th>位置</th>
+<th>时机</th>
+<th>代价</th>
+</tr></thead><tbody>
+<tr>
+<td>1. 目录</td>
+<td>system prompt</td>
+<td>启动时注入（harness 扫描 skills/）</td>
+<td>~100 tokens/skill，每轮都带</td>
+</tr>
+<tr>
+<td>2. 内容</td>
+<td>tool_result</td>
+<td>Agent 调用 load_skill 时；SKILL.md 可指引后续的 read_file/bash 调用，用于按需访问额外资源</td>
+<td>~2000 tokens/skill，按需</td>
+</tr>
+</tbody></table></div>
+<p>dispatch 机制不变，load_skill 通过 <code>TOOL_HANDLERS[block.name]</code> 分发。</p>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<p><strong>skills/ 目录</strong>，每个技能一个子目录，包含 <code>SKILL.md</code> 文件：</p>
+<figure class="code-block"><figcaption>code</figcaption><pre><code>skills/
+  agent-builder/SKILL.md
+  code-review/SKILL.md
+  mcp-builder/SKILL.md
+  pdf/SKILL.md</code></pre></figure>
+<p><strong>第一级：启动时注入目录</strong>：harness 启动时调用 <code>_scan_skills()</code> 扫描 skills/ 目录，解析每个 SKILL.md 的 YAML frontmatter（<code>name</code>、<code>description</code>），存入 <code>SKILL_REGISTRY</code> 字典。<code>list_skills()</code> 从注册表生成目录，注入 SYSTEM prompt。Agent 每轮都能看到"我有哪些技能可用"，不花额外 API 调用：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>SKILL_REGISTRY: dict[str, dict] = {}
+
+def _scan_skills():
+    if not SKILLS_DIR.exists():
+        return
+    for d in sorted(SKILLS_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        manifest = d / &quot;SKILL.md&quot;
+        if manifest.exists():
+            raw = manifest.read_text()
+            meta, body = _parse_frontmatter(raw)
+            name = meta.get(&quot;name&quot;, d.name)
+            desc = meta.get(&quot;description&quot;, raw.split(&quot;\n&quot;)[0].lstrip(&quot;#&quot;).strip())
+            SKILL_REGISTRY[name] = {&quot;name&quot;: name, &quot;description&quot;: desc, &quot;content&quot;: raw}
+
+_scan_skills()  # runs once at startup
+
+def list_skills() -&gt; str:
+    return &quot;\n&quot;.join(f&quot;- **{s[&#x27;name&#x27;]}**: {s[&#x27;description&#x27;]}&quot; for s in SKILL_REGISTRY.values())
+
+def build_system() -&gt; str:
+    catalog = list_skills()
+    return (
+        f&quot;You are a coding agent at {WORKDIR}. &quot;
+        f&quot;Skills available:\n{catalog}\n&quot;
+        &quot;Use load_skill to get full details when needed.&quot;
+    )
+
+SYSTEM = build_system()</code></pre></figure>
+<p><strong>第二级：load_skill</strong>：Agent 决定"我需要 SQL 风格指南"，调用 <code>load_skill("sql-style")</code>。通过注册表查找，不走文件路径，没有路径遍历风险。SKILL.md 内容通过 <code>tool_result</code> 注入，并可通过现有的 file 和 bash 工具进一步访问引用的 <code>references/</code>、<code>scripts/</code> 或 <code>assets/</code>。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def load_skill(name: str) -&gt; str:
+    skill = SKILL_REGISTRY.get(name)
+    if not skill:
+        return f&quot;Skill not found: {name}&quot;
+    return skill[&quot;content&quot;]</code></pre></figure>
+<p>关键区别：技能内容不是 system prompt 的一部分，它作为一次工具结果进入当前 messages。后续调用会随历史一起携带，直到上下文压缩、截断或会话结束。这和 s08 的 compact 自然衔接：按需加载解决了"不该提前带的不要带"，compact 解决"该丢的怎么丢"。</p>
+<hr class="section-rule">
+<h2 id="相对-s06-的变更">相对 s06 的变更</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>组件</th>
+<th>之前 (s06)</th>
+<th>之后 (s07)</th>
+</tr></thead><tbody>
+<tr>
+<td>工具数量</td>
+<td>7 (bash, read, write, edit, glob, todo_write, task)</td>
+<td>8 (+load_skill)</td>
+</tr>
+<tr>
+<td>知识加载</td>
+<td>无</td>
+<td>两级：启动时目录注入 SYSTEM + 运行时 load_skill；SKILL.md 可指引后续资源访问</td>
+</tr>
+<tr>
+<td>SYSTEM 提示</td>
+<td>静态字符串</td>
+<td>启动时扫描 skills/ 注入目录</td>
+</tr>
+<tr>
+<td>技能注册表</td>
+<td>无</td>
+<td>SKILL_REGISTRY（启动时填充，防路径遍历）</td>
+</tr>
+<tr>
+<td>循环</td>
+<td>不变</td>
+<td>不变（skill 工具自动分发）</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>cd learn-claude-code
+python s07_skill_loading/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>What skills are available?</code></li>
+<li><code>Load the code-review skill and follow its instructions</code></li>
+<li><code>I need to do a code review -- load the relevant skill first</code></li>
+</ol>
+<p>观察重点：Agent 是否直接从 SYSTEM 里的目录知道有哪些技能？需要完整规范时是否出现 <code>[HOOK] load_skill</code>？加载后回答是否使用了对应 skill 的说明？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>按需加载解决了"不该带的不要带"。但另一个问题来了：Agent 连续工作 30 分钟后，messages 列表塞满了中间过程。旧的 tool_result、过时的文件内容，占着上下文但不产生价值。</p>
+<p>s08 Context Compact → 四层压缩策略。便宜的先跑，贵的后跑。</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下基于 CC 源码 <code>loadSkillsDir.ts</code>、<code>SkillTool.ts</code>、<code>bundledSkills.ts</code>、<code>commands.ts</code> 的分析。</p></blockquote>
+<h3 id="一-技能来源-不是只有一个-skills-目录">一、技能来源：不是只有一个 skills/ 目录</h3>
+<p>教学版假设所有技能在 <code>skills/</code> 目录下。CC 实际从多个来源加载，分布在多个文件中：<code>loadSkillsDir.ts</code> 负责从 user/project/<code>--add-dir</code> 目录和 legacy commands（<code>.claude/commands/</code>）加载；<code>bundledSkills.ts</code> 负责内置技能；<code>SkillTool.ts</code> 处理 MCP 远程技能；<code>commands.ts</code> 负责命令聚合。类型包括 managed/policy skills、user skills（<code>~/.claude/skills/</code>）、project skills（<code>.claude/skills/</code>）、<code>--add-dir</code> skills、legacy commands、dynamic skills、conditional skills（带 <code>paths</code> frontmatter，按文件路径激活）、bundled skills、plugin skills、MCP skills。</p>
+<h3 id="二-skill-md-frontmatter-常见字段">二、SKILL.md Frontmatter 常见字段</h3>
+<p>CC 的 SKILL.md YAML frontmatter 由 <code>parseSkillFrontmatterFields()</code> 解析（<code>loadSkillsDir.ts</code>），常见字段包括：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>字段</th>
+<th>用途</th>
+</tr></thead><tbody>
+<tr>
+<td><code>name</code> / <code>description</code></td>
+<td>显示名称和描述</td>
+</tr>
+<tr>
+<td><code>when_to_use</code></td>
+<td>指导模型何时调用</td>
+</tr>
+<tr>
+<td><code>allowed-tools</code></td>
+<td>技能可用工具的自动允许列表</td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code>inline</code>（默认）或 <code>fork</code>（作为子 Agent 运行）</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>模型覆盖（haiku/sonnet/opus/inherit）</td>
+</tr>
+<tr>
+<td><code>hooks</code></td>
+<td>技能级别的 hook 配置</td>
+</tr>
+<tr>
+<td><code>paths</code></td>
+<td>条件激活的 glob 模式</td>
+</tr>
+<tr>
+<td><code>user-invocable</code></td>
+<td>用户可以通过 <code>/name</code> 调用</td>
+</tr>
+</tbody></table></div>
+<p>完整字段列表随版本迭代会变化，以上仅列出教学版涉及的核心字段。</p>
+<h3 id="三-两级加载的精确实现">三、两级加载的精确实现</h3>
+<ol>
+<li><strong>Catalog（启动时）</strong>：<code>getSkillDirCommands()</code> 扫描目录 → 注册为 <code>Command</code> 对象，只包含元数据。<code>getSkillListingAttachments()</code> 把技能列表格式化为附件，预算为上下文窗口的 ~1%（上限 8000 字符）。</li>
+<li><strong>Load（调用时）</strong>：模型调 <code>Skill</code> 工具（输入字段是 <code>skill</code> + 可选 <code>args</code>，教学版用 <code>name</code>）→ <code>getPromptForCommand()</code> 展开完整 SKILL.md 内容 → <code>SkillTool</code> 返回的 tool_result 展示文本只是 <code>"Launching skill: {name}"</code>，真正的技能内容通过 <code>newMessages</code> 注入对话。教学版把两者合并为"通过 tool_result 注入"是一种简化；加载后的 SKILL.md 仍可作为指引，帮助模型后续通过现有 file/bash 工具访问相关资源。</li>
+</ol>
+<h3 id="教学版的简化是刻意的">教学版的简化是刻意的</h3>
+<ul>
+<li>多文件多来源 → 1 个 <code>skills/</code> 目录：足以展示两级加载的核心概念</li>
+<li>多个 frontmatter 字段 → 只解析 name/description：减少解析复杂度</li>
+<li>forked skills（<code>context: 'fork'</code>）→ 省略：教学版只展开 inline 技能加载</li>
+<li><code>Skill</code> 工具输入 <code>skill</code>+<code>args</code> → 教学版用 <code>name</code>：避免参数解析的额外复杂度</li>
+</ul>
+</details>
+<p>&lt;!-- translation-sync: zh@v2, en@v2, ja@v2 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><a class="page-link" href="/s06_subagent/"><span>上一章</span><strong>s06 Subagent</strong></a><a class="page-link is-next" href="/s08_context_compact/"><span>下一章</span><strong>s08 Context Compact</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-2" href="#相对-s06-的变更"><span>04</span>相对 s06 的变更</a>
+<a class="level-2" href="#试一下"><span>05</span>试一下</a>
+<a class="level-2" href="#接下来"><span>06</span>接下来</a>
+<a class="level-3" href="#一-技能来源-不是只有一个-skills-目录"><span>07</span>一、技能来源：不是只有一个 skills/ 目录</a>
+<a class="level-3" href="#二-skill-md-frontmatter-常见字段"><span>08</span>二、SKILL.md Frontmatter 常见字段</a>
+<a class="level-3" href="#三-两级加载的精确实现"><span>09</span>三、两级加载的精确实现</a>
+<a class="level-3" href="#教学版的简化是刻意的"><span>10</span>教学版的简化是刻意的</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>

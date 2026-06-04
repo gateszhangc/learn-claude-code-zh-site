@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>s01: Agent Loop — 一个循环就够了 · Learn Claude Code</title>
+    <meta name="description" content="一个工具 + 一个循环 = 一个 Agent">
+    <link rel="canonical" href="https://learn-claude-code.codex55.lol/s01_agent_loop/">
+    <link rel="stylesheet" href="/assets/styles.css">
+  </head>
+  <body class="chapter-page">
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <header class="chapter-top">
+      <nav class="topbar" aria-label="顶部导航">
+        <a class="brand" href="/">Learn Claude Code</a>
+        <div>
+          <a href="/">总览</a>
+          <a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s01_agent_loop" rel="noopener noreferrer">GitHub 原文</a>
+        </div>
+      </nav>
+      <section class="chapter-masthead">
+        <p class="eyebrow">s01 / Harness 课程</p>
+        <h1>s01: Agent Loop — 一个循环就够了</h1>
+        <p class="lead">一个工具 + 一个循环 = 一个 Agent。这一页按阅读优先重排：窄正文、固定目录、代码块独立呼吸，适合从头读到尾。</p>
+        <div class="chapter-pager"><span class="page-link is-disabled"><span>上一章</span><strong>这是第一章</strong></span><a class="page-link is-next" href="/s02_tool_use/"><span>下一章</span><strong>s02 Tool Use</strong></a></div>
+      </section>
+    </header>
+    <main class="chapter-layout">
+      <aside class="course-rail" aria-label="课程章节">
+        <p class="toc-title">课程</p>
+        <div class="course-links"><a class="is-current" href="/s01_agent_loop/"><span>s01</span>Agent Loop</a>
+<a class="" href="/s02_tool_use/"><span>s02</span>Tool Use</a>
+<a class="" href="/s03_permission/"><span>s03</span>Permission</a>
+<a class="" href="/s04_hooks/"><span>s04</span>Hooks</a>
+<a class="" href="/s05_todo_write/"><span>s05</span>Todo Write</a>
+<a class="" href="/s06_subagent/"><span>s06</span>Subagent</a>
+<a class="" href="/s07_skill_loading/"><span>s07</span>Skill Loading</a>
+<a class="" href="/s08_context_compact/"><span>s08</span>Context Compact</a>
+<a class="" href="/s09_memory/"><span>s09</span>Memory</a>
+<a class="" href="/s10_system_prompt/"><span>s10</span>System Prompt</a>
+<a class="" href="/s11_error_recovery/"><span>s11</span>Error Recovery</a>
+<a class="" href="/s12_task_system/"><span>s12</span>Task System</a>
+<a class="" href="/s13_background_tasks/"><span>s13</span>Background Tasks</a>
+<a class="" href="/s14_cron_scheduler/"><span>s14</span>Cron Scheduler</a>
+<a class="" href="/s15_agent_teams/"><span>s15</span>Agent Teams</a>
+<a class="" href="/s16_team_protocols/"><span>s16</span>Team Protocols</a>
+<a class="" href="/s17_autonomous_agents/"><span>s17</span>Autonomous Agents</a>
+<a class="" href="/s18_worktree_isolation/"><span>s18</span>Worktree Isolation</a>
+<a class="" href="/s19_mcp_plugin/"><span>s19</span>MCP Plugin</a>
+<a class="" href="/s20_comprehensive/"><span>s20</span>Comprehensive</a></div>
+      </aside>
+      <article class="article chapter-article">
+        <p class="source-note">来源：<a href="https://github.com/shareAI-lab/learn-claude-code/tree/main/s01_agent_loop" rel="noopener noreferrer">shareAI-lab/learn-claude-code/s01_agent_loop</a></p>
+        <h1 id="s01-agent-loop-一个循环就够了">s01: Agent Loop — 一个循环就够了</h1>
+<p><code>s01</code> → <a href="/s02_tool_use/" rel="noopener noreferrer">s02</a> → s03 → s04 → ... → s20</p>
+<blockquote><p><em>"One loop &amp; Bash is all you need"</em> — 一个工具 + 一个循环 = 一个 Agent。  <strong>Harness 层</strong>: 循环 — 模型与真实世界的第一道连接。</p></blockquote>
+<hr class="section-rule">
+<h2 id="问题">问题</h2>
+<p>你提出了一个问题给大模型：“帮我读取下我的目录下有哪些文件，并且执行XXX.py”。</p>
+<p>模型能输出一条 bash 命令，但输出完了就停了，它不会自己跑，也不会看到结果后继续推理。</p>
+<p>你可以手动跑一遍，把输出粘贴回对话框，让它接着干。下一个命令出来，你再跑一遍、再贴回去。</p>
+<p>每一个来回，你都在做中间层。而把它自动化，就是这一章要做的事。</p>
+<hr class="section-rule">
+<h2 id="解决方案">解决方案</h2>
+<figure class="media-figure"><img src="https://raw.githubusercontent.com/shareAI-lab/learn-claude-code/main/s01_agent_loop/images/agent-loop.svg" alt="Agent Loop" loading="lazy"></figure>
+<p>一个 <code>while True</code> 循环，模型调用工具就继续，不调用就停。整个过程只有两个信号：</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>信号</th>
+<th>含义</th>
+<th>循环动作</th>
+</tr></thead><tbody>
+<tr>
+<td><code>stop_reason == "tool_use"</code></td>
+<td>模型举手说"我要用工具"</td>
+<td>执行 → 结果喂回去 → 继续</td>
+</tr>
+<tr>
+<td><code>stop_reason != "tool_use"</code></td>
+<td>模型说"我做完了"</td>
+<td>退出循环</td>
+</tr>
+</tbody></table></div>
+<hr class="section-rule">
+<h2 id="工作原理">工作原理</h2>
+<p>将这个过程翻译成代码。分步来看：</p>
+<p><strong>第 1 步</strong>：把用户的问题作为第一条消息。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: query}]</code></pre></figure>
+<p><strong>第 2 步</strong>：将消息和工具定义一起发给 LLM。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>response = client.messages.create(
+    model=MODEL, system=SYSTEM, messages=messages,
+    tools=TOOLS, max_tokens=8000,
+)</code></pre></figure>
+<p><strong>第 3 步</strong>：追加模型回答，检查它是否调了工具。没调 → 结束。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+if response.stop_reason != &quot;tool_use&quot;:
+    return</code></pre></figure>
+<p><strong>第 4 步</strong>：执行模型要求的工具，收集结果。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>results = []
+for block in response.content:
+    if block.type == &quot;tool_use&quot;:
+        output = run_bash(block.input[&quot;command&quot;])
+        results.append({
+            &quot;type&quot;: &quot;tool_result&quot;,
+            &quot;tool_use_id&quot;: block.id,
+            &quot;content&quot;: output,
+        })</code></pre></figure>
+<p><strong>第 5 步</strong>：把工具结果作为新消息追加，回到第 2 步。</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})</code></pre></figure>
+<p>组装为一个完整函数：</p>
+<figure class="code-block"><figcaption>python</figcaption><pre><code>def agent_loop(messages):
+    while True:
+        response = client.messages.create(
+            model=MODEL, system=SYSTEM, messages=messages,
+            tools=TOOLS, max_tokens=8000,
+        )
+        messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+
+        if response.stop_reason != &quot;tool_use&quot;:
+            return
+
+        results = []
+        for block in response.content:
+            if block.type == &quot;tool_use&quot;:
+                output = run_bash(block.input[&quot;command&quot;])
+                results.append({
+                    &quot;type&quot;: &quot;tool_result&quot;,
+                    &quot;tool_use_id&quot;: block.id,
+                    &quot;content&quot;: output,
+                })
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})</code></pre></figure>
+<p>不到 30 行，这就是最小可运行的 agent harness 内核。它不是智能本身，而是让模型能持续行动的最小运行框架，模型负责决策（要不要调工具、调哪个），harness 负责执行（调了就跑、结果喂回去）。后面 18 个章节都在这个循环上叠加机制，循环本身始终不变。</p>
+<hr class="section-rule">
+<h2 id="试一下">试一下</h2>
+<blockquote><p><strong>教学 demo 提示</strong>：代码会执行模型生成的 shell 命令。建议在一个临时测试目录中运行，避免影响你的项目文件。s03 会讲真正的权限系统。</p></blockquote>
+<p><strong>准备</strong>（首次运行）：</p>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>pip install -r requirements.txt
+cp .env.example .env
+# 编辑 .env，填入 ANTHROPIC_API_KEY 和 MODEL_ID</code></pre></figure>
+<p><strong>运行</strong>：</p>
+<figure class="code-block"><figcaption>sh</figcaption><pre><code>python s01_agent_loop/code.py</code></pre></figure>
+<p>试试这些 prompt：</p>
+<ol>
+<li><code>Create a file called hello.py that prints "Hello, World!"</code></li>
+<li><code>List all Python files in this directory</code></li>
+<li><code>What is the current git branch?</code></li>
+</ol>
+<p>观察重点：模型什么时候调用工具（循环继续），什么时候不调用（循环结束）？</p>
+<hr class="section-rule">
+<h2 id="接下来">接下来</h2>
+<p>现在模型手里只有 bash 一个工具，读文件要 <code>cat</code>，写文件要 <code>echo ... &gt;</code>，找个文件要 <code>find</code>，又丑又容易出错。</p>
+<p>s02 Tool Use → 给它 5 个真正的工具，会发生什么？模型会不会一次调用多个工具？几个工具同时跑会不会互相踩？</p>
+<details>
+<summary>深入 CC 源码</summary>
+<blockquote><p>以下内容基于 CC 源码 <code>src/query.ts</code>（1729 行）的核查。核心差异就两个：CC 不看 <code>stop_reason</code> 字段而是检查内容里有没有 tool_use 块（因为流式响应中 stop_reason 不可靠）；CC 有更多的退出路径和恢复策略做生产级保护。</p></blockquote>
+<p><strong>教学版的 30 行 <code>while True</code> 就是 CC 1729 行的核心。</strong> 下面每一项都是在这个核心上叠加的保护机制。</p>
+<details>
+<summary>一、循环结构差异</summary>
+<p>教学版检查 <code>response.stop_reason</code>。CC 不把它作为循环继续的唯一依据——流式响应中 <code>stop_reason</code> 可能还没更新但内容里已经有 <code>tool_use</code> 块了。CC 用 <code>needsFollowUp</code> 标志：接收到流式消息时（<code>query.ts:830-834</code>），只要检测到 <code>tool_use</code> 块就设为 <code>true</code>；<code>QueryEngine.ts</code> 会从 <code>message_delta</code> 捕获真实 <code>stop_reason</code> 用于其他逻辑，但 query loop 本身靠 <code>needsFollowUp</code> 决定是否继续。</p>
+<figure class="code-block"><figcaption>typescript</figcaption><pre><code>// query.ts:554-558
+// stop_reason === &#x27;tool_use&#x27; is unreliable.
+// Set during streaming whenever a tool_use block arrives.
+let needsFollowUp = false</code></pre></figure>
+</details>
+<details>
+<summary>二、State 对象 10 字段（教学版只用 messages）</summary>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>#</th>
+<th>字段</th>
+<th>用途</th>
+<th>对应章节</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td><code>messages</code></td>
+<td>当前迭代的消息数组</td>
+<td>s01</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>toolUseContext</code></td>
+<td>工具、信号、权限上下文</td>
+<td>s02</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>autoCompactTracking</code></td>
+<td>压缩状态追踪</td>
+<td>s08</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>maxOutputTokensRecoveryCount</code></td>
+<td>token 恢复尝试次数（上限 3）</td>
+<td>s11</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>hasAttemptedReactiveCompact</code></td>
+<td>本轮是否已尝试响应式压缩</td>
+<td>s08</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>maxOutputTokensOverride</code></td>
+<td>8K→64K 的升级覆盖</td>
+<td>s11</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>pendingToolUseSummary</code></td>
+<td>后台 Haiku 生成的 tool use 摘要</td>
+<td>s08</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>stopHookActive</code></td>
+<td>停止钩子是否产生阻塞错误</td>
+<td>s04</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>turnCount</code></td>
+<td>轮次计数（maxTurns 检查）</td>
+<td>s01</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>transition</code></td>
+<td>上一次继续原因</td>
+<td>s11</td>
+</tr>
+</tbody></table></div>
+<blockquote><p>注：<code>taskBudgetRemaining</code>（<code>query.ts:291</code>）是 loop-local 局部变量，不在 State 上。源码注释明确写了 "Loop-local (not on State)"。</p></blockquote>
+</details>
+<details>
+<summary>三、多条退出和继续路径</summary>
+<p>教学版只有 1 条退出路径（模型不调工具就结束）。生产版有多条退出和继续路径，覆盖 blocking limit、prompt too long、model error、abort、hook stop、max turns、token budget continuation、reactive compact retry 等场景。每种场景都有对应的恢复或退出策略。</p>
+</details>
+<details>
+<summary>四、流式工具执行和 QueryEngine</summary>
+<p>CC 的 <code>StreamingToolExecutor</code>（<code>query.ts:561</code>）让工具在模型还在生成时就开始并行执行（根据工具是否 concurrency-safe 决定并发或独占）。<code>QueryEngine.ts</code> 额外加了费用超限、结构化输出验证失败等保护。教学版不实现这些——目标是概念清晰，不是性能极致。</p>
+</details>
+<p><strong>一句话</strong>：1729 行的 query.ts 核心就是 30 行 <code>while True</code>。所有复杂字段和退出路径都是保护机制。先理解核心循环，后面的一切自然展开。</p>
+</details>
+<p>&lt;!-- translation-sync: zh@v1, en@v0, ja@v0 --&gt;</p>
+        <nav class="bottom-pager" aria-label="章节翻页"><span class="page-link is-disabled"><span>上一章</span><strong>这是第一章</strong></span><a class="page-link is-next" href="/s02_tool_use/"><span>下一章</span><strong>s02 Tool Use</strong></a></nav>
+      </article>
+      <aside class="toc chapter-toc" aria-label="本章目录">
+        <p class="toc-title">本章目录</p>
+        <div class="toc-links"><a class="level-2" href="#问题"><span>01</span>问题</a>
+<a class="level-2" href="#解决方案"><span>02</span>解决方案</a>
+<a class="level-2" href="#工作原理"><span>03</span>工作原理</a>
+<a class="level-2" href="#试一下"><span>04</span>试一下</a>
+<a class="level-2" href="#接下来"><span>05</span>接下来</a></div>
+      </aside>
+    </main>
+    <script src="/assets/book.js"></script>
+  </body>
+</html>
